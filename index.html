@@ -1,0 +1,3384 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Kinder Klub Affiliate Portal</title>
+
+  <!-- ================= PWA & HOMESCREEN CONFIGURATION ================= -->
+  <meta name="apple-mobile-web-app-title" content="Kinder Klub">
+  <meta name="application-name" content="Kinder Klub">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FEF8F0">
+
+  <!-- App Store / Homescreen Thumbnail Icon -->
+  <link rel="apple-touch-icon" href="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg">
+  <link rel="icon" type="image/jpeg" sizes="192x192" href="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg">
+  <link rel="shortcut icon" href="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg">
+
+  <!-- Google Font: Jua -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+  <!-- FIREBASE SCRIPTS (COMPAT v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --c-jet: #111111;
+      --c-oat: #FEF8F0;
+      
+      /* PALET PASTEL RAINBOW COLOR PALETTE NO. 2 (TINY PAGES) */
+      --c-bubblegum: #FFA9DD;   /* Bubblegum Pink Pop */
+      --c-orange: #FEB700;      /* Bright Orange */
+      --c-sunny: #FFE26F;       /* Sunny Days Yellow */
+      --c-lime: #C4E02F;        /* Lime Green */
+      --c-bluesky: #7CD5D9;     /* Blue Sky */
+      --c-periwinkle: #99ADFF;  /* Periwinkle Purple */
+      
+      --font-jua: 'Jua', cursive, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: var(--font-jua) !important;
+      letter-spacing: 0.02em;
+    }
+
+    body {
+      background-color: var(--c-oat);
+      color: var(--c-jet);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-x: hidden;
+      padding-bottom: 85px;
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    input, textarea, select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      touch-action: manipulation;
+      border: 2.5px solid var(--c-jet);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-size: 14px;
+      width: 100%;
+      background: #ffffff;
+      color: var(--c-jet);
+      outline: none;
+      box-shadow: 0 3px 0 var(--c-jet);
+      transition: all 0.15s ease;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--c-jet);
+      box-shadow: 0 5px 0 var(--c-jet);
+      background: #fff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 16px;
+      padding: 11px 18px;
+      font-size: 14px;
+      border: 2.5px solid var(--c-jet);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.1s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 0 var(--c-jet);
+      color: var(--c-jet);
+    }
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--c-jet);
+      filter: brightness(0.96);
+    }
+    .btn-block { width: 100%; }
+    .btn-jet { background: var(--c-jet); color: #ffffff !important; border-color: var(--c-jet); }
+    .btn-bubblegum { background: var(--c-bubblegum); }
+    .btn-orange { background: var(--c-orange); color: #ffffff !important; }
+    .btn-sunny { background: var(--c-sunny); }
+    .btn-lime { background: var(--c-lime); }
+    .btn-bluesky { background: var(--c-bluesky); }
+    .btn-periwinkle { background: var(--c-periwinkle); }
+    .btn-outline { background: #ffffff; }
+
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 18px;
+      border: 2.5px solid var(--c-jet);
+      box-shadow: 0 5px 0 var(--c-jet);
+      margin-bottom: 16px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--c-oat);
+      border-bottom: 2.5px solid var(--c-jet);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #drawerOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #drawerPanel {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 82%;
+      max-width: 320px;
+      background: #ffffff;
+      z-index: 51;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 3px solid var(--c-jet);
+      box-shadow: 10px 0 0 rgba(0,0,0,0.15);
+      border-radius: 0 28px 28px 0;
+      overflow: hidden;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.drawer-open #drawerOverlay { opacity: 1; pointer-events: auto; }
+    body.drawer-open #drawerPanel { transform: translateX(0); }
+
+    .drawer-nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      border: 2.5px solid var(--c-jet);
+      box-shadow: 0 3px 0 var(--c-jet);
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 9px;
+      transition: all 0.12s ease;
+      text-align: left;
+      color: var(--c-jet);
+      text-decoration: none;
+    }
+    .drawer-nav-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--c-jet);
+    }
+    .drawer-nav-btn.active {
+      border: 3.5px solid var(--c-jet) !important;
+      box-shadow: 0 6px 0 var(--c-jet) !important;
+      transform: scale(1.02);
+      font-weight: 900;
+    }
+
+    /* DIALOG MODAL BIASA */
+    .modal-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-wrap.active { display: flex; }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 26px;
+      max-width: 620px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      border: 3px solid var(--c-jet);
+      box-shadow: 0 10px 0 var(--c-jet);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* FULLSCREEN NATIVE APP MODAL */
+    #progDetailModal.modal-wrap,
+    #salesSummaryModal.modal-wrap {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      background: var(--c-oat) !important;
+      backdrop-filter: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      z-index: 9999 !important;
+      display: none;
+    }
+    #progDetailModal.modal-wrap.active,
+    #salesSummaryModal.modal-wrap.active {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    #progDetailModal .modal-box,
+    #salesSummaryModal .modal-box {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      background: var(--c-oat) !important;
+    }
+
+    .modal-fullscreen-header {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+      padding-bottom: 14px !important;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(16px, env(safe-area-inset-right, 0px)) !important;
+      background: var(--c-bubblegum);
+      border-bottom: 3px solid var(--c-jet);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 0 var(--c-jet);
+      z-index: 10;
+    }
+
+    .modal-fullscreen-footer {
+      padding-top: 12px !important;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(16px, env(safe-area-inset-right, 0px)) !important;
+      border-top: 3px solid var(--c-jet);
+      background: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 45;
+      background: #ffffff;
+      border-top: 2.5px solid var(--c-jet);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 10px calc(env(safe-area-inset-bottom, 0px) + 8px) 10px;
+    }
+    .bar-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: rgba(17, 17, 17, 0.45);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 14px;
+      transition: all 0.15s;
+    }
+    .bar-btn.active {
+      color: var(--c-jet);
+      font-weight: 900;
+      transform: scale(1.06);
+    }
+    .bar-btn.active span {
+      border-bottom: 2px solid var(--c-orange);
+    }
+    .bar-btn svg { width: 22px; height: 22px; stroke-width: 2.6; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 2px solid var(--c-jet);
+      color: var(--c-jet);
+    }
+    .badge-unlocked { background: var(--c-lime); }
+    .badge-locked { background: #e5e7eb; }
+    .badge-active { background: var(--c-lime); }
+    .badge-banned { background: #ffcdd2; color: #b71c1c; }
+
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .tbl th, .tbl td {
+      padding: 10px 8px;
+      border-bottom: 2px solid rgba(17, 17, 17, 0.12);
+    }
+    .tbl th { font-size: 11px; color: rgba(17,17,17,0.7); text-transform: uppercase; }
+
+    #toastWrap {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 16px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 360px;
+    }
+    .toast-msg {
+      background: var(--c-jet);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 0 var(--c-orange);
+      border: 2px solid #ffffff;
+      animation: popToast 0.25s ease forwards;
+    }
+    @keyframes popToast {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .module-menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 20px;
+      border: 2.5px solid var(--c-jet);
+      box-shadow: 0 4px 0 var(--c-jet);
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.15s ease;
+      text-align: left;
+      width: 100%;
+      color: var(--c-jet);
+      margin-bottom: 10px;
+    }
+    .module-menu-btn:hover {
+      filter: brightness(0.97);
+    }
+    .module-menu-btn.active, .module-menu-btn:focus-visible {
+      border: 3.5px solid var(--c-jet) !important;
+      box-shadow: 0 6px 0 var(--c-jet) !important;
+      transform: scale(1.02);
+      font-weight: 900;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .cal-cell-header {
+      font-size: 11px;
+      color: rgba(17, 17, 17, 0.6);
+      padding: 4px 0;
+    }
+    .cal-cell {
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      font-size: 13px;
+      background: #ffffff;
+      border: 2px solid var(--c-jet);
+      box-shadow: 0 2px 0 var(--c-jet);
+      transition: all 0.12s ease;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cal-cell:active {
+      transform: scale(0.94);
+      box-shadow: 0 1px 0 var(--c-jet);
+    }
+    .cal-cell.today {
+      border: 3px solid var(--c-jet);
+      transform: scale(1.04);
+      background: var(--c-sunny);
+    }
+    .cal-cell.has-sale {
+      background: var(--c-orange) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 0 var(--c-jet);
+    }
+    .cal-cell.has-progress {
+      background: var(--c-lime) !important;
+      color: var(--c-jet);
+      box-shadow: 0 4px 0 var(--c-jet);
+    }
+    .cal-cell.empty {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .embedded-frame-wrap {
+      width: 100%;
+      flex: 1;
+      height: 100%;
+      min-height: 70vh;
+      border-radius: 20px;
+      border: 2.5px solid var(--c-jet);
+      overflow: hidden;
+      box-shadow: 0 5px 0 var(--c-jet);
+      background: #ffffff;
+      position: relative;
+      display: flex;
+    }
+    .embedded-frame-wrap iframe {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      display: block;
+    }
+
+    /* SUMMARY STYLES */
+    .summary-toggle-pill {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #ffffff;
+      border: 2.5px solid var(--c-jet);
+      border-radius: 999px;
+      padding: 4px;
+      box-shadow: 0 3px 0 var(--c-jet);
+      margin: 14px 0;
+      gap: 3px;
+    }
+    .summary-toggle-btn {
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: rgba(17, 17, 17, 0.6);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .summary-toggle-btn.active {
+      background: var(--c-jet);
+      color: #ffffff !important;
+      font-weight: 900;
+    }
+
+    .summary-card-inner {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      border: 2.5px solid var(--c-jet);
+      box-shadow: 6px 6px 0 var(--c-jet);
+      margin-bottom: 16px;
+    }
+
+    .stacked-bar-holder {
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: #f1f1f1;
+      border: 2px solid var(--c-jet);
+      overflow: hidden;
+      display: flex;
+      margin: 14px 0 16px 0;
+    }
+    .stacked-bar-seg {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOP APP BAR ================= -->
+  <header>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn btn-outline" onclick="toggleDrawer(true)" style="padding:6px 12px; border-radius:14px;" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div style="display:flex; align-items:center; gap:9px;">
+        <img src="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg" alt="Logo" style="width:34px; height:34px; border-radius:12px; border:2.5px solid var(--c-jet); object-fit:cover; box-shadow:0 2px 0 var(--c-jet);">
+        <div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="width:10px; height:10px; border-radius:50%; background:var(--c-bubblegum); border:1.5px solid var(--c-jet);"></span>
+            <span style="font-size:18px; text-transform:uppercase;">Kinder Klub</span>
+          </div>
+          <p style="font-size:11px; color:rgba(17,17,17,0.65); letter-spacing:0.04em;">AFFILIATE PORTAL</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button type="button" id="topUserBadge" onclick="openUserProfileModal()" style="display:none; align-items:center; gap:6px; background:#fff; padding:5px 12px; border-radius:999px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet); cursor:pointer;">
+        <span id="topUserInitial" style="width:24px; height:24px; border-radius:50%; background:var(--c-sunny); display:inline-flex; align-items:center; justify-content:center; font-size:12px; border:1.5px solid var(--c-jet);">K</span>
+        <span id="topUserName" style="font-size:13px; max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:900;">Affiliate</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" style="opacity:0.6;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+      </button>
+
+      <button id="topAdminBtn" onclick="openAdminModal()" class="btn btn-outline" style="display:none; padding:6px 12px; font-size:12px; border-radius:999px; background:var(--c-jet); color:#ffffff !important;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= USER PROFILE EDIT MODAL ================= -->
+  <div id="userProfileModal" class="modal-wrap">
+    <div class="modal-box" style="max-width:380px; padding:22px; text-align:center;">
+      <div style="width:60px; height:60px; border-radius:20px; background:var(--c-sunny); color:var(--c-jet); display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px; border:2.5px solid var(--c-jet); box-shadow:0 4px 0 var(--c-jet);">
+        <span id="profModalInitial" style="font-size:26px; font-weight:900;">K</span>
+      </div>
+      <h3 style="font-size:20px; margin-bottom:4px;">Profil Affiliate Anda</h3>
+      <p style="font-size:12px; color:rgba(17,17,17,0.7); margin-bottom:16px;">
+        Anda boleh mengemas kini nama paparan anda di dalam portal pada bila-bila masa.
+      </p>
+
+      <form onsubmit="handleSaveUserProfile(event)" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+        <div>
+          <label style="font-size:11px; display:block; margin-bottom:3px;">Nama Penuh / Samaran Affiliate</label>
+          <input type="text" id="profInputName" placeholder="Nama anda..." required>
+        </div>
+        <div>
+          <label style="font-size:11px; display:block; margin-bottom:3px;">Alamat Emel Gmail Terpaut</label>
+          <input type="text" id="profInputEmail" disabled style="background:var(--c-oat); cursor:not-allowed; opacity:0.8;">
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <button type="submit" class="btn btn-bubblegum" style="flex:1; padding:12px; font-size:13px;">
+            Simpan Nama
+          </button>
+          <button type="button" onclick="closeUserProfileModal()" class="btn btn-outline" style="padding:12px; font-size:13px;">
+            Tutup
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= BCL ACTION MODAL (KEMAS & TEPAT) ================= -->
+  <div id="bclDialogModal" class="modal-wrap">
+    <div class="modal-box" style="max-width:380px; padding:22px; text-align:center;">
+      <div style="width:58px; height:58px; border-radius:20px; background:var(--c-periwinkle); display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px; border:2.5px solid var(--c-jet); box-shadow:0 4px 0 var(--c-jet);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+      </div>
+      <h3 style="font-size:20px; margin-bottom:4px;">Website BCL Affiliate</h3>
+      <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:18px;">
+        Pilih tindakan untuk melayari portal komisen rasmi BCL:
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button type="button" onclick="launchBclSafariNow()" class="btn btn-sunny btn-block" style="padding:13px; font-size:15px; font-weight:900;">
+          <span>Buka Safari / Chrome</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+        </button>
+        <button type="button" onclick="copyBclUrlToClipboard()" class="btn btn-outline btn-block" style="padding:12px; font-size:13px;">
+          Salin Pautan URL BCL
+        </button>
+        <button type="button" onclick="closeBclDialogModal()" class="btn btn-jet btn-block" style="padding:10px; font-size:13px; margin-top:2px;">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SLIDE-OUT DRAWER MENU ================= -->
+  <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+  <aside id="drawerPanel">
+    <div>
+      <div style="padding:20px; background:linear-gradient(135deg, var(--c-bubblegum), var(--c-sunny)); border-bottom:3px solid var(--c-jet);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <img src="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg" alt="Logo" style="width:48px; height:48px; border-radius:16px; border:2.5px solid var(--c-jet); object-fit:cover; box-shadow:0 4px 0 var(--c-jet);">
+          <button onclick="toggleDrawer(false)" class="btn btn-outline" style="padding:5px 9px; border-radius:50%; font-size:14px; box-shadow:0 2px 0 var(--c-jet);">✕</button>
+        </div>
+        <h3 style="font-size:20px; line-height:1.2;">Kinder Klub Hub</h3>
+        <p style="font-size:12px; color:rgba(17,17,17,0.85);">Portal Rasmi Jana Pendapatan Affiliate</p>
+      </div>
+
+      <div style="padding:16px; display:flex; flex-direction:column;">
+        <span style="font-size:11px; color:rgba(17,17,17,0.6); text-transform:uppercase; margin-bottom:10px; display:block;">MENU UTAMA</span>
+        
+        <button onclick="switchTab('programs')" class="drawer-nav-btn active" id="drawerNav-programs" style="background:var(--c-bubblegum);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            <span>Program & Modul</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <button onclick="switchTab('sales')" class="drawer-nav-btn" id="drawerNav-sales" style="background:var(--c-orange); color:#ffffff;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+            <span>Sales & Target Tracker</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <button onclick="switchTab('calendar')" class="drawer-nav-btn" id="drawerNav-calendar" style="background:var(--c-lime);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Content Checklist</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <button onclick="switchTab('passcode')" class="drawer-nav-btn" id="drawerNav-passcode" style="background:var(--c-bluesky);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5-2 2H5v3h3l2-2 1.5 1.5 4-4-1.5-1.5 3.5-3.5L21 2z"></path></svg>
+            <span>Tebus Kod Akses</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <!-- SAFE BCL BUTTON DALAM DRAWER -->
+        <button type="button" onclick="openBclSafely(event)" class="drawer-nav-btn" style="background:var(--c-periwinkle); margin-top:4px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span>Website BCL Affiliate</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+        </button>
+
+        <div id="drawerAdminSection" style="display:none;">
+          <div style="border-top:2.5px solid var(--c-jet); margin:12px 0 8px 0;"></div>
+          <span style="font-size:11px; color:rgba(17,17,17,0.6); text-transform:uppercase; margin-bottom:8px; display:block;">KAWALAN PENTADBIR</span>
+          
+          <button onclick="openAdminModal()" class="drawer-nav-btn" style="background:var(--c-jet); color:#ffffff;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Konsol Pentadbir</span>
+            </div>
+            <span style="background:var(--c-bubblegum); color:var(--c-jet); font-size:10px; padding:3px 8px; border-radius:8px; border:1.5px solid var(--c-jet);">ADMIN</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px; border-top:2.5px solid var(--c-jet); background:var(--c-oat);" id="drawerAuthBox"></div>
+  </aside>
+
+  <!-- ================= MAIN BODY ================= -->
+  <main style="max-width:850px; width:100%; margin:0 auto; padding:16px; flex:1;">
+
+    <!-- HERO APP BANNER -->
+    <div style="background:var(--c-jet); color:#ffffff; border-radius:26px; padding:22px; position:relative; overflow:hidden; margin-bottom:20px; border:3px solid var(--c-jet); box-shadow:0 6px 0 var(--c-orange);">
+      <div style="display:inline-flex; align-items:center; gap:6px; background:#ffffff; color:var(--c-jet); padding:5px 12px; border-radius:999px; margin-bottom:12px; border:2px solid var(--c-jet);">
+        <span style="width:8px; height:8px; border-radius:50%; background:var(--c-lime); border:1px solid var(--c-jet);"></span>
+        <span style="font-size:11px; text-transform:uppercase;">OFFICIAL AFFILIATE WORKSPACE</span>
+      </div>
+      <h2 style="font-size:26px; margin-bottom:6px; line-height:1.2;">Kinder Klub Affiliate Portal</h2>
+      <p style="font-size:13px; color:rgba(254,248,240,0.9); line-height:1.5; margin-bottom:16px; max-width:550px;">
+        Akses panduan bahan kraf, kalendar promosi viral, dan pantau sasaran jualan komisen anda di satu hab khas!
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px;">
+        <div style="background:var(--c-lime); color:var(--c-jet); border:2px solid var(--c-jet); padding:6px 14px; border-radius:14px; box-shadow:0 2px 0 var(--c-jet);">
+          Status Kod: <span id="heroPasscodeTag">0 Kod Aktif</span>
+        </div>
+        <div style="background:var(--c-bluesky); color:var(--c-jet); border:2px solid var(--c-jet); padding:6px 14px; border-radius:14px; box-shadow:0 2px 0 var(--c-jet);">
+          Modul Layak: <span id="heroModulesCount">0 Program</span>
+        </div>
+        <!-- SAFE BCL BUTTON DI BANNER UTAMA -->
+        <button type="button" onclick="openBclSafely(event)" class="btn btn-sunny" style="padding:6px 14px; font-size:12px; border-radius:14px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Buka Web BCL ↗</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= TAB 1: PROGRAMS & MODULES ================= -->
+    <section id="tab-programs" class="tab-view" style="display:block;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <h3 style="font-size:22px; display:flex; align-items:center; gap:8px;">
+            <span style="width:14px; height:14px; border-radius:50%; background:var(--c-bubblegum); border:2px solid var(--c-jet);"></span>
+            <span>Senarai Program & Bahan</span>
+          </h3>
+          <p style="font-size:13px; color:rgba(17,17,17,0.7);">Hanya program sah yang telah ditebus akan boleh dibuka.</p>
+        </div>
+        <button onclick="switchTab('passcode')" class="btn btn-bubblegum" style="padding:8px 14px; font-size:12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5-2 2H5v3h3l2-2 1.5 1.5 4-4-1.5-1.5 3.5-3.5L21 2z"></path></svg>
+          <span>Tebus Kod</span>
+        </button>
+      </div>
+
+      <div id="programsListContainer" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;"></div>
+    </section>
+
+    <!-- ================= TAB 2: SALES TRACKER ================= -->
+    <section id="tab-sales" class="tab-view" style="display:none;">
+      <div style="margin-bottom:14px;">
+        <h3 style="font-size:22px; display:flex; align-items:center; gap:8px;">
+          <span style="width:14px; height:14px; border-radius:50%; background:var(--c-orange); border:2px solid var(--c-jet);"></span>
+          <span>Sales & Daily Target Record</span>
+        </h3>
+        <p style="font-size:13px; color:rgba(17,17,17,0.7);">Tetapkan sasaran RM harian, semak pencapaian, & pantau kalendar jualan.</p>
+      </div>
+
+      <div class="card" style="background:var(--c-orange); color:#ffffff; border:3px solid var(--c-jet); box-shadow:0 6px 0 var(--c-jet);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <h4 style="font-size:19px; color:#ffffff;">Sasaran Jualan Hari Ini</h4>
+            <span id="salesTodayDateDisplay" style="font-size:12px; color:#ffffff; opacity:0.95;">-</span>
+          </div>
+          <button type="button" onclick="executeSaveDailyTarget()" class="btn btn-sunny" style="padding:7px 14px; font-size:12px;">
+            Simpan Target
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; color:var(--c-jet);">
+          <div style="background:#fff; padding:12px; border-radius:18px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet);">
+            <label style="font-size:11px; color:rgba(17,17,17,0.7); display:block; margin-bottom:4px;">Target (RM)</label>
+            <input type="number" id="inpTargetRM" placeholder="200" style="font-size:20px; padding:4px 0; border:none; box-shadow:none;">
+          </div>
+          <div style="background:#fff; padding:12px; border-radius:18px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet);">
+            <label style="font-size:11px; color:rgba(17,17,17,0.7); display:block; margin-bottom:4px;">Tercapai (RM)</label>
+            <input type="number" id="inpAchievedRM" placeholder="0" style="font-size:20px; color:var(--c-orange); padding:4px 0; border:none; box-shadow:none;" readonly>
+          </div>
+          <div style="background:#fff; padding:12px; border-radius:18px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet); display:flex; flex-direction:column; justify-content:center;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px;">
+              <span>Pencapaian:</span>
+              <span id="targetPercentLabel" style="color:var(--c-orange); font-size:15px; font-weight:900;">0%</span>
+            </div>
+            <div style="width:100%; height:12px; background:rgba(17,17,17,0.15); border-radius:999px; overflow:hidden; border:2px solid var(--c-jet);">
+              <div id="targetBarFill" style="width:0%; height:100%; background:var(--c-bubblegum); border-radius:999px; transition:width 0.3s;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4 style="font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Rekod Jualan Baharu</span>
+        </h4>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
+          <div>
+            <label style="font-size:11px; display:block; margin-bottom:3px;">Nama Pembeli / No Inv</label>
+            <input type="text" id="inpSaleCustomer" placeholder="Cth: Pn. Sarah">
+          </div>
+          <div>
+            <label style="font-size:11px; display:block; margin-bottom:3px;">Pakej Program</label>
+            <select id="inpSaleProgram"></select>
+          </div>
+          <div>
+            <label style="font-size:11px; display:block; margin-bottom:3px;">Nilai Komisen (RM)</label>
+            <input type="number" id="inpSaleAmount" placeholder="50" min="1">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button type="button" onclick="executeAddNewSale()" class="btn btn-block btn-sunny" style="padding:11px;">
+              Simpan Jualan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= KALENDAR JUALAN (2026 - 2100) ================= -->
+      <div class="card" style="border:2.5px solid var(--c-jet);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h4 style="font-size:16px; display:flex; align-items:center; gap:6px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>Kalendar Jualan Bulanan</span>
+            </h4>
+            <p style="font-size:12px; color:rgba(17,17,17,0.7);">Tekan mana-mana tarikh untuk semak rekod hari berkenaan.</p>
+          </div>
+
+          <!-- KAWALAN PILIH BULAN & TAHUN -->
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <button onclick="navigateSalesMonth(-1)" class="btn btn-outline" style="padding:5px 10px; font-size:12px; border-radius:12px;" title="Bulan Sebelumnya">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <select id="selectSalesMonth" onchange="handleSalesMonthYearChange()" style="width:auto; padding:5px 10px; font-size:12px; border-radius:12px; background:var(--c-sunny); cursor:pointer;">
+              <option value="0">Januari</option>
+              <option value="1">Februari</option>
+              <option value="2">Mac</option>
+              <option value="3">April</option>
+              <option value="4">Mei</option>
+              <option value="5">Jun</option>
+              <option value="6">Julai</option>
+              <option value="7">Ogos</option>
+              <option value="8">September</option>
+              <option value="9">Oktober</option>
+              <option value="10">November</option>
+              <option value="11">Disember</option>
+            </select>
+
+            <select id="selectSalesYear" onchange="handleSalesMonthYearChange()" style="width:auto; padding:5px 10px; font-size:12px; border-radius:12px; background:var(--c-sunny); cursor:pointer;">
+              <!-- Populated dynamic 2026-2100 -->
+            </select>
+
+            <button onclick="navigateSalesMonth(1)" class="btn btn-outline" style="padding:5px 10px; font-size:12px; border-radius:12px;" title="Bulan Seterusnya">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+
+            <button onclick="resetSalesCalendarToCurrent()" class="btn btn-orange" style="padding:5px 12px; font-size:11px; border-radius:12px;" title="Kembali ke Hari Ini">
+              Hari Ini
+            </button>
+          </div>
+        </div>
+        
+        <div class="cal-grid" id="salesCalendarGrid"></div>
+      </div>
+
+      <!-- SEJARAH JUALAN DENGAN BUTANG SUMMARY -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h4 style="font-size:16px;">Sejarah Jualan Anda</h4>
+            <span id="salesTotalSumLabel" style="font-size:14px; color:var(--c-orange); font-weight:900;">Jumlah: RM 0.00</span>
+          </div>
+          
+          <button onclick="openSalesSummaryModal()" class="btn btn-bubblegum" style="padding:8px 16px; font-size:13px; font-weight:900;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Buka Ringkasan (Summary)</span>
+          </button>
+        </div>
+        <div id="salesListHolder" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: CONTENT PROGRESS & CALENDAR ================= -->
+    <section id="tab-calendar" class="tab-view" style="display:none;">
+      <div style="margin-bottom:14px;">
+        <h3 style="font-size:22px; display:flex; align-items:center; gap:8px;">
+          <span style="width:14px; height:14px; border-radius:50%; background:var(--c-lime); border:2px solid var(--c-jet);"></span>
+          <span>Content Progress Checklist</span>
+        </h3>
+        <p style="font-size:13px; color:rgba(17,17,17,0.7);">Tandakan platform dan jenis content yang disiapkan hari ini.</p>
+      </div>
+
+      <div class="card" style="background:var(--c-lime); border:3px solid var(--c-jet); box-shadow:0 6px 0 var(--c-jet);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <h4 style="font-size:19px;">Checklist Hari Ini</h4>
+            <span id="contentTodayDateLabel" style="font-size:12px; color:rgba(17,17,17,0.8);">-</span>
+          </div>
+          <button type="button" onclick="executeSaveProgress()" class="btn btn-jet" style="padding:7px 16px; font-size:12px;">
+            Simpan Progress
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+          <div style="background:#fff; padding:14px; border-radius:20px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet);">
+            <strong style="font-size:13px; display:block; margin-bottom:10px; text-transform:uppercase;">1. Platform Disiarkan:</strong>
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_tiktok" style="width:auto;"> TikTok</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_instagram" style="width:auto;"> IG Reels / Story</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_facebook" style="width:auto;"> Facebook Group</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_whatsapp" style="width:auto;"> WhatsApp Status</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_threads" style="width:auto;"> Threads</label>
+              
+              <div style="margin-top:6px; padding-top:8px; border-top:2px dashed var(--c-jet);">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:6px;">
+                  <input type="checkbox" id="chk_custom_platform" style="width:auto;" onchange="toggleCustomPlatformInput(this.checked)"> Lain-lain
+                </label>
+                <input type="text" id="inp_custom_platform_text" placeholder="Cth: Lemon8, X, Blog..." style="display:none; padding:8px 12px; font-size:12px; border-radius:12px; background:var(--c-oat);">
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff; padding:14px; border-radius:20px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet);">
+            <strong style="font-size:13px; display:block; margin-bottom:10px; text-transform:uppercase;">2. Format Content:</strong>
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_video" style="width:auto;"> Video POV / Demo</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_carousel" style="width:auto;"> Carousel / Poster</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_copywriting" style="width:auto;"> Storytelling Softsell</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_live" style="width:auto;"> Sesi Live</label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk_review" style="width:auto;"> Review Testimoni</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="border:2.5px solid var(--c-jet);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <h4 style="font-size:16px; display:flex; align-items:center; gap:6px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <span>Kalendar Aktiviti Content</span>
+            </h4>
+            <p style="font-size:12px; color:rgba(17,17,17,0.7);">Rekod konsistensi anda membuat promosi setiap hari.</p>
+          </div>
+          <span id="contentStreakTag" style="font-size:12px; background:var(--c-lime); border:2px solid var(--c-jet); padding:4px 12px; border-radius:999px; box-shadow:0 2px 0 var(--c-jet);">
+            0 Hari Aktif
+          </span>
+        </div>
+
+        <div class="cal-grid" id="contentCalendarGrid"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: MULTI-PASSCODE ACTIVATION ================= -->
+    <section id="tab-passcode" class="tab-view" style="display:none;">
+      <div style="margin-bottom:14px;">
+        <h3 style="font-size:22px; display:flex; align-items:center; gap:8px;">
+          <span style="width:14px; height:14px; border-radius:50%; background:var(--c-bluesky); border:2px solid var(--c-jet);"></span>
+          <span>Tebus Kod Akses Program</span>
+        </h3>
+        <p style="font-size:13px; color:rgba(17,17,17,0.7);">Masukkan mana-mana passcode unik untuk membuka program affiliate anda.</p>
+      </div>
+
+      <div class="card" style="max-width:480px; margin:0 auto; background:var(--c-bluesky); border:3px solid var(--c-jet); box-shadow:0 6px 0 var(--c-jet);">
+        <div style="text-align:center;">
+          <div style="width:58px; height:58px; border-radius:20px; background:#fff; display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px; border:2.5px solid var(--c-jet); box-shadow:0 3px 0 var(--c-jet);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5-2 2H5v3h3l2-2 1.5 1.5 4-4-1.5-1.5 3.5-3.5L21 2z"></path></svg>
+          </div>
+          <h4 style="font-size:20px; margin-bottom:4px;">Penebusan Kod Akses Baharu</h4>
+          <p style="font-size:13px; color:rgba(17,17,17,0.85); margin-bottom:16px;">
+            Setiap kali anda sertai program baharu, tebus kod di sini. Kod terdahulu akan <strong>kekal aktif bersama</strong>!
+          </p>
+        </div>
+        
+        <form onsubmit="handleApplyPasscode(event)" style="display:flex; flex-direction:column; gap:12px;">
+          <input type="text" id="inpPasscodeActivation" placeholder="Masukkan kod anda di sini..." style="text-align:center; font-size:18px; text-transform:uppercase; background:#fff;" required>
+          <button type="submit" class="btn btn-jet btn-block" style="padding:13px; font-size:15px;">Sahkan & Tambah Akses</button>
+        </form>
+
+        <div id="activePasscodeBox" style="margin-top:20px; padding-top:16px; border-top:2.5px dashed var(--c-jet);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="font-size:13px; text-transform:uppercase;">Kod Aktif Anda (<span id="userPasscodesCount">0</span>)</strong>
+            <button onclick="clearAllUserPasscodes()" class="btn btn-outline" style="padding:4px 10px; font-size:11px; color:red; border-radius:10px;">
+              Reset Semua Kod
+            </button>
+          </div>
+          <div id="userPasscodesListHolder" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL TARIKH HARIAN KALENDAR ================= -->
+  <div id="dateDetailsModal" class="modal-wrap">
+    <div class="modal-box" style="max-width:400px; padding:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:2px solid var(--c-jet); padding-bottom:8px;">
+        <div>
+          <span style="font-size:11px; background:var(--c-sunny); padding:2px 8px; border-radius:8px; border:1.5px solid var(--c-jet);">Rekod Jualan</span>
+          <h4 style="font-size:18px; margin-top:2px;" id="modalSelectedDateTitle">Tarikh</h4>
+        </div>
+        <button onclick="closeDateDetailsModal()" class="btn btn-outline" style="padding:4px 8px; font-size:12px; border-radius:50%;">✕</button>
+      </div>
+
+      <div id="modalSelectedDateSalesList" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; margin-bottom:14px;"></div>
+
+      <div style="background:var(--c-oat); padding:12px; border-radius:16px; border:2px solid var(--c-jet);">
+        <strong style="font-size:12px; display:block; margin-bottom:8px;">+ Tambah Jualan Pada Tarikh Ini:</strong>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="inpModalSaleCustomer" placeholder="Nama Pelanggan...">
+          <select id="inpModalSaleProgram"></select>
+          <input type="number" id="inpModalSaleAmount" placeholder="Komisen RM (cth: 50)" min="1">
+          <button type="button" onclick="executeAddNewSaleFromModal()" class="btn btn-orange btn-block" style="padding:10px; font-size:13px;">
+            Simpan Untuk Tarikh Ini
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL SUMMARY EKSKLUSIF (4 FILTERS) ================= -->
+  <div id="salesSummaryModal" class="modal-wrap">
+    <div class="modal-box">
+      <!-- HEADER FULLSCREEN -->
+      <div class="modal-fullscreen-header" style="background:var(--c-oat);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:11px; background:#fff; padding:3px 10px; border-radius:999px; border:2px solid var(--c-jet); box-shadow:0 2px 0 var(--c-jet);">
+            Kinder Klub Analytics
+          </span>
+        </div>
+        <button onclick="closeSalesSummaryModal()" class="btn btn-outline" style="padding:6px 12px; border-radius:50%; font-size:15px; box-shadow:0 3px 0 var(--c-jet); flex-shrink:0;">✕</button>
+      </div>
+
+      <!-- BODY SUMMARY -->
+      <div style="padding:20px 18px; flex:1; overflow-y:auto; background:var(--c-oat);">
+        
+        <div style="margin-bottom:16px; text-align:left;">
+          <h2 style="font-size:32px; line-height:1.15; margin-bottom:6px; font-weight:900;">
+            Your sales,<br>honestly.
+          </h2>
+          <p style="font-size:14px; color:rgba(17,17,17,0.7);">
+            Komisen, sasaran dan prestasi jualan affiliate anda.
+          </p>
+        </div>
+
+        <!-- TOGGLE 4 FILTER -->
+        <div class="summary-toggle-pill">
+          <button type="button" id="sumToggleWeek" onclick="switchSummaryView('week')" class="summary-toggle-btn active">
+            Minggu Ini
+          </button>
+          <button type="button" id="sumToggleMonth" onclick="switchSummaryView('month')" class="summary-toggle-btn">
+            Bulan Ini
+          </button>
+          <button type="button" id="sumToggleYear" onclick="switchSummaryView('year')" class="summary-toggle-btn">
+            Tahun Ini
+          </button>
+          <button type="button" id="sumToggleLastYear" onclick="switchSummaryView('last_year')" class="summary-toggle-btn">
+            Tahun Lepas
+          </button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:12px; color:rgba(17,17,17,0.7); text-transform:uppercase;">
+          <span id="sumPeriodLabel">5 - 11 NOV 2026</span>
+          <span id="sumTotalCountBadge" style="background:#fff; padding:3px 8px; border-radius:8px; border:1.5px solid var(--c-jet);">0 JUALAN</span>
+        </div>
+
+        <div class="summary-card-inner">
+          <span style="font-size:11px; text-transform:uppercase; color:rgba(17,17,17,0.6); display:block; letter-spacing:0.04em;">
+            EARNED SO FAR THIS PERIOD
+          </span>
+          <div style="font-size:38px; line-height:1.1; margin:6px 0 2px 0; font-weight:900; color:var(--c-jet); display:flex; align-items:flex-start; gap:2px;">
+            <span style="font-size:24px; color:var(--c-orange); margin-top:4px;">RM</span>
+            <span id="sumBigTotalRM">0.00</span>
+          </div>
+
+          <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:10px;" id="sumAvgSubtitle">
+            0 transaksi • RM 0.00 purata sehari
+          </p>
+
+          <div style="display:inline-flex; align-items:center; gap:6px; background:var(--c-lime); padding:4px 10px; border-radius:8px; border:1.5px solid var(--c-jet); font-size:11px; margin-bottom:12px;" id="sumVsTargetPill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="2"></circle></svg>
+            <span>Capai Sasaran: 0%</span>
+          </div>
+
+          <div class="stacked-bar-holder" id="sumStackedBar"></div>
+          <div id="sumBreakdownList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER FULLSCREEN -->
+      <div class="modal-fullscreen-footer">
+        <span style="font-size:12px; color:rgba(17,17,17,0.7);">Kinder Klub Performance Hub</span>
+        <button onclick="closeSalesSummaryModal()" class="btn btn-jet" style="padding:8px 20px; font-size:13px;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRONT PAGE LOGIN GATE ================= -->
+  <div id="frontPageGate" style="position:fixed; inset:0; z-index:60; background:var(--c-oat); display:none; flex-direction:column; justify-content:space-between; padding:calc(env(safe-area-inset-top, 0px) + 16px) 20px calc(env(safe-area-inset-bottom, 0px) + 16px) 20px; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; max-width:420px; width:100%; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img src="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg" alt="Logo" style="width:32px; height:32px; border-radius:10px; border:2px solid var(--c-jet); object-fit:cover;">
+        <span style="font-size:20px; text-transform:uppercase;">Kinder Klub</span>
+      </div>
+      <button onclick="openAdminModal()" class="btn btn-outline" style="padding:6px 14px; font-size:12px; border-radius:999px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span>Admin</span>
+      </button>
+    </div>
+
+    <div class="card" style="max-width:420px; width:100%; margin:24px auto; text-align:center; border:3px solid var(--c-jet); box-shadow:0 8px 0 var(--c-jet); padding:28px 22px;">
+      <img src="https://i.postimg.cc/5Ny8mYst/IMG-0067.jpg" alt="Kinder Klub Thumbnail" style="width:74px; height:74px; border-radius:22px; border:2.5px solid var(--c-jet); margin:0 auto 14px; object-fit:cover; box-shadow:0 6px 0 var(--c-bubblegum); display:block;">
+      
+      <h2 style="font-size:26px; margin-bottom:6px;">Selamat Datang!</h2>
+      <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:20px;">
+        Sila log masuk akaun Gmail affiliate anda untuk membuka akses penuh portal.
+      </p>
+
+      <button type="button" id="btnGoogleDirectLogin" onclick="triggerDirectGoogleAuth()" class="btn btn-block btn-outline" style="padding:13px; border-radius:18px; margin-bottom:14px; font-size:14px; background:#ffffff;">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+        <span id="btnGoogleText">Masuk Terus dengan Google</span>
+      </button>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+        <span style="flex:1; height:2px; background:var(--c-jet);"></span>
+        <span style="font-size:11px; color:rgba(17,17,17,0.6); text-transform:uppercase;">Atau Masukkan Butiran</span>
+        <span style="flex:1; height:2px; background:var(--c-jet);"></span>
+      </div>
+
+      <form onsubmit="handleManualLogin(event)" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+        <div>
+          <label style="font-size:11px; display:block; margin-bottom:4px;">Nama Penuh / Samaran Affiliate</label>
+          <input type="text" id="inpManualName" placeholder="Cth: Sarah Ahmad" required>
+        </div>
+        <div>
+          <label style="font-size:11px; display:block; margin-bottom:4px;">Alamat Emel Gmail</label>
+          <input type="email" id="inpManualEmail" placeholder="sarah@gmail.com" required>
+        </div>
+        <button type="submit" class="btn btn-bubblegum btn-block" style="padding:13px; margin-top:6px; font-size:15px;">
+          Log Masuk & Teruskan
+        </button>
+      </form>
+
+      <p style="font-size:11px; color:rgba(17,17,17,0.6); margin-top:14px;">
+        Sesi anda akan disimpan secara kekal dalam telefon ini secara automatik.
+      </p>
+    </div>
+
+    <div style="text-align:center; font-size:12px; color:rgba(17,17,17,0.6);">
+      Kinder Klub | All Rights Reserved
+    </div>
+  </div>
+
+  <!-- ================= PROGRAM DETAILS MODAL ================= -->
+  <div id="progDetailModal" class="modal-wrap">
+    <div class="modal-box">
+      <div class="modal-fullscreen-header">
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <span style="font-size:11px; background:#fff; padding:3px 10px; border-radius:999px; border:2px solid var(--c-jet); box-shadow:0 2px 0 var(--c-jet); align-self:flex-start;" id="pmBadge">Modul Kandungan</span>
+          <h3 style="font-size:20px; line-height:1.2;" id="pmTitle">Nama Program</h3>
+        </div>
+        <button onclick="closeProgramModal()" class="btn btn-outline" style="padding:6px 12px; border-radius:50%; font-size:15px; box-shadow:0 3px 0 var(--c-jet); flex-shrink:0;">✕</button>
+      </div>
+
+      <div id="pmViewList" style="padding:18px; display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto; background:var(--c-oat);">
+        <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:6px;">
+          Sila klik pada mana-mana tajuk di bawah untuk membuka kandungan panduan atau enjin promosi:
+        </p>
+        <div id="pmModulesMenuHolder" style="display:flex; flex-direction:column;"></div>
+      </div>
+
+      <div id="pmViewDetail" style="display:none; padding:14px 16px; flex:1; overflow-y:auto; flex-direction:column; background:var(--c-oat);">
+        <div style="display:flex; align-items:center; margin-bottom:12px; flex-shrink:0;">
+          <button onclick="backToModulesList()" class="btn btn-outline" style="font-size:13px; padding:8px 16px; background:#ffffff; box-shadow:0 3px 0 var(--c-jet);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Kembali ke Senarai Modul</span>
+          </button>
+        </div>
+
+        <h4 id="pmSingleTitle" style="font-size:19px; margin-bottom:12px; color:var(--c-jet); border-bottom:2.5px solid var(--c-jet); padding-bottom:8px; flex-shrink:0;">
+          Tajuk Modul
+        </h4>
+
+        <div id="pmSingleBody" style="width:100%; flex:1; display:flex; flex-direction:column;"></div>
+      </div>
+
+      <div class="modal-fullscreen-footer">
+        <span style="font-size:12px; color:rgba(17,17,17,0.7);">Kinder Klub Official Resource</span>
+        <button onclick="closeProgramModal()" class="btn btn-jet" style="padding:8px 20px; font-size:13px;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN CONSOLE MODAL ================= -->
+  <div id="adminModal" class="modal-wrap">
+    <div class="modal-box" style="max-width:680px; position:relative;">
+      
+      <div style="padding:14px 18px; background:var(--c-jet); color:#fff; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:30;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:30px; height:30px; border-radius:10px; background:var(--c-bubblegum); color:var(--c-jet); display:flex; align-items:center; justify-content:center; border:1.5px solid #fff;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px; margin:0; line-height:1.2;">Konsol Pentadbir Kinder Klub</h3>
+            <p style="font-size:11px; color:rgba(255,255,255,0.7); margin:0;">Urus Program, Passcode, Affiliate & Pautan</p>
+          </div>
+        </div>
+
+        <button onclick="closeAdminModal()" class="btn btn-outline" style="padding:6px 14px; font-size:12px; background:#ffffff; color:var(--c-jet); border-radius:12px;" title="Keluar">
+          ✕ Keluar
+        </button>
+      </div>
+
+      <!-- Admin Gate View -->
+      <div id="admGateView" style="padding:30px 20px; text-align:center;">
+        <div style="width:56px; height:56px; border-radius:20px; background:var(--c-bubblegum); color:var(--c-jet); display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px; border:2.5px solid var(--c-jet); box-shadow:0 4px 0 var(--c-jet);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h4 style="font-size:20px;">Pengesahan Pentadbir</h4>
+        <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:16px;">Sila masukkan Username & Password pentadbir Kinder Klub.</p>
+
+        <form onsubmit="handleAdminLogin(event)" style="max-width:300px; margin:0 auto; display:flex; flex-direction:column; gap:10px; text-align:left;">
+          <div>
+            <label style="font-size:11px; display:block; margin-bottom:3px;">Username</label>
+            <input type="text" id="admUserInput" required>
+          </div>
+          <div>
+            <label style="font-size:11px; display:block; margin-bottom:3px;">Password</label>
+            <input type="password" id="admPassInput" required>
+          </div>
+          <button type="submit" class="btn btn-bubblegum btn-block" style="padding:12px; margin-top:6px; font-size:14px;">
+            Masuk Konsol Admin
+          </button>
+        </form>
+      </div>
+
+      <!-- Admin Panel View -->
+      <div id="admPanelView" style="display:none; padding:18px; flex:1; overflow-y:auto;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; border-bottom:2.5px solid var(--c-jet); padding-bottom:12px; margin-bottom:16px;">
+          <div style="display:flex; gap:6px; overflow-x:auto; flex:1;">
+            <button onclick="switchAdminTab('programs')" id="admNav-programs" class="btn btn-outline" style="font-size:12px; padding:7px 14px; background:var(--c-bubblegum); color:var(--c-jet);">Urus Program</button>
+            <button onclick="switchAdminTab('passcodes')" id="admNav-passcodes" class="btn btn-outline" style="font-size:12px; padding:7px 14px;">Jana Kod Akses</button>
+            <button onclick="switchAdminTab('affiliates')" id="admNav-affiliates" class="btn btn-outline" style="font-size:12px; padding:7px 14px;">Senarai Affiliate</button>
+            <button onclick="switchAdminTab('settings')" id="admNav-settings" class="btn btn-outline" style="font-size:12px; padding:7px 14px;">Pautan BCL</button>
+            <button onclick="switchAdminTab('firebase')" id="admNav-firebase" class="btn btn-outline" style="font-size:12px; padding:7px 14px;">Tetapan Firebase</button>
+          </div>
+          <button onclick="closeAdminModal()" class="btn btn-outline" style="padding:6px 12px; font-size:12px; background:var(--c-oat); flex-shrink:0;">
+            ✕ Exit
+          </button>
+        </div>
+
+        <div id="admSec-programs" class="adm-section" style="display:block;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+            <button type="button" id="admProgSubToggleList" onclick="toggleProgramView('list')" class="btn btn-jet" style="padding:11px; font-size:13px;">
+              Senarai Program Anda (<span id="admProgCountPill">0</span>)
+            </button>
+            <button type="button" id="admProgSubToggleForm" onclick="toggleProgramView('form')" class="btn btn-outline" style="padding:11px; font-size:13px;">
+              Tambah Program Baru
+            </button>
+          </div>
+
+          <div id="admProgListView" style="display:block;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div>
+                <strong style="font-size:14px; text-transform:uppercase;">Senarai Program Sedia Ada</strong>
+                <p style="font-size:12px; color:rgba(17,17,17,0.7);">Tekan butang 'Edit' pada program untuk ubah kandungan & modulnya.</p>
+              </div>
+              <button onclick="toggleProgramView('form'); resetProgramForm();" class="btn btn-bubblegum" style="padding:7px 14px; font-size:12px;">
+                + Cipta Baru
+              </button>
+            </div>
+
+            <div id="admProgListContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+
+          <div id="admProgFormView" style="display:none; background:var(--c-oat); padding:18px; border-radius:22px; border:2.5px solid var(--c-jet); box-shadow:0 4px 0 var(--c-jet); margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div>
+                <strong style="font-size:14px; text-transform:uppercase; color:var(--c-orange);" id="admFormTitle">Tambah Program Baru</strong>
+                <span id="admFormStatusBadge" style="display:none; font-size:11px; background:#fff; padding:3px 10px; border-radius:999px; border:1.5px solid var(--c-jet); margin-left:6px;">Mod Suntingan</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" onclick="toggleProgramView('list')" style="font-size:12px; color:var(--c-jet); background:none; border:none; text-decoration:underline; cursor:pointer;">
+                  Kembali ke Senarai
+                </button>
+                <button type="button" onclick="resetProgramForm()" style="font-size:11px; background:none; border:none; color:rgba(17,17,17,0.6); cursor:pointer;">
+                  Kosongkan
+                </button>
+              </div>
+            </div>
+
+            <form onsubmit="handleSaveProgram(event)" style="display:flex; flex-direction:column; gap:12px;">
+              <input type="hidden" id="admProgId">
+              <div style="grid-template-columns:1fr 1fr; gap:10px; display:grid;">
+                <div>
+                  <label style="font-size:11px; display:block; margin-bottom:3px;">Tajuk Program *</label>
+                  <input type="text" id="admProgTitle" placeholder="Cth: Maths Klub" required>
+                </div>
+                <div>
+                  <label style="font-size:11px; display:block; margin-bottom:3px;">Passcode Program (Rahsia Admin) *</label>
+                  <input type="text" id="admProgPasscode" placeholder="Cth: MK230626AFF" style="text-transform:uppercase;" required>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:11px; display:block; margin-bottom:3px;">Penerangan (Boleh biar kosong)</label>
+                <input type="text" id="admProgDesc" placeholder="Ringkasan pakej program...">
+              </div>
+
+              <div style="background:#fff; padding:14px; border-radius:18px; border:2px solid var(--c-jet);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:12px;">Kandungan Sub-Bahagian:</span>
+                  <button type="button" onclick="addNewCustomSubSectionInput()" class="btn btn-lime" style="padding:5px 10px; font-size:11px;">+ Tambah Kustom</button>
+                </div>
+                <p style="font-size:11px; color:rgba(17,17,17,0.7); margin-bottom:10px;">Hanya sub-bahagian yang diisi akan muncul pada paparan affiliate.</p>
+
+                <div id="admSubSectionsFormHolder" style="display:flex; flex-direction:column; gap:10px;"></div>
+              </div>
+
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-jet" style="flex:1; padding:13px; font-size:14px;">Simpan Program</button>
+                <button type="button" onclick="toggleProgramView('list')" class="btn btn-outline" style="padding:13px; font-size:14px;">Batal</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div id="admSec-passcodes" class="adm-section" style="display:none;">
+          <div style="background:var(--c-oat); padding:16px; border-radius:20px; border:2.5px solid var(--c-jet); margin-bottom:16px;">
+            <strong style="font-size:13px; display:block; margin-bottom:10px; text-transform:uppercase;">Jana Kod Akses VIP Pelanggan</strong>
+            <form onsubmit="handleCreatePasscode(event)" style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label style="font-size:11px; display:block; margin-bottom:3px;">Nama / Rujukan</label>
+                  <input type="text" id="admNewPasscodeName" placeholder="Cth: Cikgu Sarah" required>
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                    <label style="font-size:11px;">Kod Akses</label>
+                    <button type="button" onclick="generateRandomPasscode()" style="font-size:11px; color:var(--c-orange); background:none; border:none; cursor:pointer;">Jana Rawak</button>
+                  </div>
+                  <input type="text" id="admNewPasscodeCode" placeholder="Cth: VIP-8821" style="text-transform:uppercase;" required>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:11px; display:block; margin-bottom:6px;">Pilih Program Layak Diakses:</label>
+                <div id="admProgramCheckboxes" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; background:#fff; padding:12px; border-radius:14px; border:2px solid var(--c-jet); max-height:140px; overflow-y:auto;"></div>
+              </div>
+
+              <button type="submit" class="btn btn-sunny btn-block" style="padding:12px; font-size:14px;">Jana Kod Akses</button>
+            </form>
+          </div>
+
+          <div>
+            <strong style="font-size:13px; display:block; margin-bottom:10px; text-transform:uppercase;">Senarai Kod Dikeluarkan</strong>
+            <div id="admPasscodesListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+        </div>
+
+        <div id="admSec-affiliates" class="adm-section" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <strong style="font-size:14px; display:block; text-transform:uppercase;">Direktori Pemantauan Affiliate</strong>
+              <p style="font-size:12px; color:rgba(17,17,17,0.7);">Pantau semua pengguna yang pernah log masuk ke portal.</p>
+            </div>
+            <button onclick="exportAffiliatesToCSV()" class="btn btn-lime" style="padding:7px 14px; font-size:12px;">
+              Eksport Senarai (CSV)
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:14px;">
+            <div style="background:var(--c-bluesky); padding:12px; border-radius:16px; border:2.5px solid var(--c-jet); text-align:center; box-shadow:0 3px 0 var(--c-jet);">
+              <span style="font-size:11px; color:var(--c-jet); display:block;">Jumlah Affiliate</span>
+              <strong style="font-size:20px;" id="admAffTotalCount">0</strong>
+            </div>
+            <div style="background:var(--c-lime); padding:12px; border-radius:16px; border:2.5px solid var(--c-jet); text-align:center; box-shadow:0 3px 0 var(--c-jet);">
+              <span style="font-size:11px; color:var(--c-jet); display:block;">Status Aktif</span>
+              <strong style="font-size:20px;" id="admAffActiveCount">0</strong>
+            </div>
+            <div style="background:#ffcdd2; padding:12px; border-radius:16px; border:2.5px solid var(--c-jet); text-align:center; box-shadow:0 3px 0 var(--c-jet);">
+              <span style="font-size:11px; color:#b71c1c; display:block;">Disekat</span>
+              <strong style="font-size:20px; color:#b71c1c;" id="admAffBannedCount">0</strong>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0; overflow-x:auto;">
+            <table class="tbl" id="admAffiliatesTable">
+              <thead>
+                <tr>
+                  <th>Nama Affiliate</th>
+                  <th>Emel Gmail</th>
+                  <th>Daftar Pertama</th>
+                  <th>Status</th>
+                  <th>Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="admAffiliatesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="admSec-settings" class="adm-section" style="display:none;">
+          <div class="card">
+            <h5 style="font-size:16px; margin-bottom:6px;">Tetapan Pautan Rasmi BCL</h5>
+            <p style="font-size:12px; color:rgba(17,17,17,0.7); margin-bottom:12px;">Pautan ini akan dibuka bila affiliate klik butang Web BCL.</p>
+            <form onsubmit="handleSaveBclSetting(event)" style="display:flex; flex-direction:column; gap:12px;">
+              <input type="url" id="admInputBclUrl" placeholder="https://bcl.my/" required>
+              <button type="submit" class="btn btn-jet btn-block" style="padding:12px; font-size:14px;">Simpan URL BCL</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="admSec-firebase" class="adm-section" style="display:none;">
+          <div class="card" style="background:var(--c-bluesky); border:2.5px solid var(--c-jet);">
+            <h5 style="font-size:16px; margin-bottom:4px;">Konfigurasi Firebase Web SDK (Tersambung Rasmi)</h5>
+            <p style="font-size:12px; color:rgba(17,17,17,0.85); margin-bottom:10px;">Konfigurasi projek Kinder Klub rasmi aktif:</p>
+            <form onsubmit="handleSaveFirebaseConfig(event)" style="display:flex; flex-direction:column; gap:10px;">
+              <textarea id="admInputFirebaseConfig" rows="6" style="background:#fff; font-size:12px;"></textarea>
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-jet" style="flex:1; padding:12px; font-size:13px;">Simpan Config</button>
+                <button type="button" onclick="testFirebaseConfigStatus()" class="btn btn-sunny" style="padding:12px; font-size:13px;">Uji Status</button>
+              </div>
+            </form>
+            <p id="firebaseStatusIndicator" style="font-size:12px; margin-top:8px; color:#0E6245;">Status: Aktif & Sedia Digunakan</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="padding:12px 18px; border-top:2.5px solid var(--c-jet); background:var(--c-oat); display:flex; justify-content:space-between; align-items:center; position:sticky; bottom:0; z-index:20;">
+        <span style="font-size:12px; color:rgba(17,17,17,0.6);">Kinder Klub Admin v3.5</span>
+        <div style="display:flex; gap:14px; align-items:center;">
+          <button onclick="closeAdminModal()" style="color:var(--c-jet); font-size:12px; background:none; border:none; cursor:pointer; text-decoration:underline;">
+            ✕ Buka Portal Affiliate
+          </button>
+          <button onclick="lockAdminConsole()" style="color:red; font-size:12px; background:none; border:none; cursor:pointer;">
+            Kunci Konsol
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+  <nav class="bottom-bar">
+    <button onclick="switchTab('programs')" class="bar-btn active" id="bar-programs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+      <span>Program</span>
+    </button>
+    <button onclick="switchTab('sales')" class="bar-btn" id="bar-sales">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      <span>Sales</span>
+    </button>
+    <button onclick="switchTab('calendar')" class="bar-btn" id="bar-calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      <span>Progress</span>
+    </button>
+    <button onclick="switchTab('passcode')" class="bar-btn" id="bar-passcode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5-2 2H5v3h3l2-2 1.5 1.5 4-4-1.5-1.5 3.5-3.5L21 2z"></path></svg>
+      <span>Akses</span>
+    </button>
+    <button onclick="toggleDrawer(true)" class="bar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <span>Menu</span>
+    </button>
+  </nav>
+
+  <!-- ================= TOAST CONTAINER ================= -->
+  <div id="toastWrap"></div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
+  <script>
+    const STORAGE_KEY_PROGRAMS = 'kk_programs_v3';
+    const STORAGE_KEY_PASSCODES = 'kk_passcodes_v3';
+    const STORAGE_KEY_USER = 'kk_active_user_v3';
+    const STORAGE_KEY_AFFILIATES = 'kk_affiliates_directory_v3';
+    const STORAGE_KEY_BCL = 'kk_bcl_url_v3';
+    const STORAGE_KEY_FIREBASE = 'kk_firebase_config_v3';
+
+    const MASTER_ADMIN_EMAIL = "hello.lyaliyana@gmail.com";
+
+    const DEFAULT_FIREBASE_CONFIG = JSON.stringify({
+      apiKey: "AIzaSyC7lnMk9gGRWgvwJuMMjok71kEZRTHAexU",
+      authDomain: "kinderklubaffiliateportal.firebaseapp.com",
+      projectId: "kinderklubaffiliateportal",
+      storageBucket: "kinderklubaffiliateportal.firebasestorage.app",
+      messagingSenderId: "359036965566",
+      appId: "1:359036965566:web:bb240f3481da58143504ef"
+    }, null, 2);
+
+    const STANDARD_SUB_SECTIONS = [
+      { key: 'step_by_step', title: 'Step by step mula menjual' },
+      { key: 'daftar_affiliate', title: 'Cara daftar affiliate' },
+      { key: 'payout_affiliate', title: 'Cara request payout affiliate' },
+      { key: 'grow_account', title: 'Cara grow account' },
+      { key: 'cara_menjual', title: 'Cara menjual' },
+      { key: 'close_sale', title: 'Teknik close sale' },
+      { key: 'content_calendar', title: 'Content calendar' },
+      { key: 'content_generator', title: 'Content generator engine' },
+    ];
+
+    const PASTEL_RAINBOW_PALETTE = [
+      { name: 'bubblegum', bg: '#FFA9DD', badgeBg: '#111111', badgeText: '#FFA9DD', text: '#111111' },
+      { name: 'bright-orange', bg: '#FEB700', badgeBg: '#111111', badgeText: '#FEB700', text: '#111111' },
+      { name: 'sunny-days', bg: '#FFE26F', badgeBg: '#111111', badgeText: '#FFE26F', text: '#111111' },
+      { name: 'lime-green', bg: '#C4E02F', badgeBg: '#111111', badgeText: '#C4E02F', text: '#111111' },
+      { name: 'blue-sky', bg: '#7CD5D9', badgeBg: '#111111', badgeText: '#7CD5D9', text: '#111111' },
+      { name: 'periwinkle', bg: '#99ADFF', badgeBg: '#111111', badgeText: '#99ADFF', text: '#111111' }
+    ];
+
+    function cleanTitleNumbering(title) {
+      if (!title) return '';
+      let clean = title.replace(/^\s*\d+[\.\)\-]?\s*/, '').trim();
+      clean = clean.replace(/requested\s+payout/gi, 'request payout');
+      if (clean.toLowerCase() === 'step by step mula') {
+        clean = 'Step by step mula menjual';
+      }
+      return clean;
+    }
+
+    let programs = JSON.parse(localStorage.getItem(STORAGE_KEY_PROGRAMS)) || [];
+    let passcodes = JSON.parse(localStorage.getItem(STORAGE_KEY_PASSCODES)) || [];
+    
+    // LOAD CURRENT USER WITH FAIL-SAFE
+    let currentUser = null;
+    try {
+      const storedUser = localStorage.getItem(STORAGE_KEY_USER);
+      if (storedUser) currentUser = JSON.parse(storedUser);
+    } catch(e) { currentUser = null; }
+
+    let affiliatesDirectory = JSON.parse(localStorage.getItem(STORAGE_KEY_AFFILIATES)) || [];
+    
+    // PERBAIKAN: Default URL diselaraskan ke https://bcl.my/
+    let rawStoredBcl = localStorage.getItem(STORAGE_KEY_BCL);
+    let bclUrl = (rawStoredBcl && rawStoredBcl.includes('bcl.')) ? rawStoredBcl : 'https://bcl.my/';
+    if (bclUrl.includes('bcl.com.my')) {
+      bclUrl = 'https://bcl.my/';
+      localStorage.setItem(STORAGE_KEY_BCL, bclUrl);
+    }
+
+    let firebaseConfig = localStorage.getItem(STORAGE_KEY_FIREBASE) || DEFAULT_FIREBASE_CONFIG;
+
+    /* PEMBOLEHUBAH BULAN & TAHUN (2026 HINGGA 2100) */
+    const realNow = new Date();
+    let currentSelectedSalesYear = Math.max(2026, realNow.getFullYear());
+    let currentSelectedSalesMonth = realNow.getMonth();
+
+    function getUserPasscodesStorageKey() {
+      const emailKey = currentUser ? currentUser.email.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'guest';
+      return `kk_user_passcodes_${emailKey}`;
+    }
+    function getUserSalesStorageKey() {
+      const emailKey = currentUser ? currentUser.email.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'guest';
+      return `kk_sales_user_${emailKey}`;
+    }
+    function getUserContentStorageKey() {
+      const emailKey = currentUser ? currentUser.email.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'guest';
+      return `kk_content_user_${emailKey}`;
+    }
+    function getUserTargetStorageKey() {
+      const emailKey = currentUser ? currentUser.email.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'guest';
+      return `kk_target_user_${emailKey}`;
+    }
+
+    let userPasscodes = [];
+    let salesHistory = [];
+    let contentRecords = {};
+    let dailyTarget = { target: 200, date: getTodayDate() };
+
+    function loadUserScopedData() {
+      if (currentUser) {
+        const rawStored = localStorage.getItem(getUserPasscodesStorageKey());
+        if (rawStored) {
+          try {
+            userPasscodes = JSON.parse(rawStored);
+            if (!Array.isArray(userPasscodes)) userPasscodes = [userPasscodes];
+          } catch(e) {
+            userPasscodes = [rawStored];
+          }
+        } else {
+          const legacyCode = localStorage.getItem('kk_active_passcode_v3');
+          userPasscodes = legacyCode ? [legacyCode] : [];
+        }
+
+        salesHistory = JSON.parse(localStorage.getItem(getUserSalesStorageKey())) || [];
+        contentRecords = JSON.parse(localStorage.getItem(getUserContentStorageKey())) || {};
+        dailyTarget = JSON.parse(localStorage.getItem(getUserTargetStorageKey())) || { target: 200, date: getTodayDate() };
+      } else {
+        userPasscodes = [];
+        salesHistory = [];
+        contentRecords = {};
+        dailyTarget = { target: 200, date: getTodayDate() };
+      }
+    }
+
+    function saveUserPasscodes() {
+      localStorage.setItem(getUserPasscodesStorageKey(), JSON.stringify(userPasscodes));
+      if (fbDb && currentUser) {
+        try {
+          const userDocId = currentUser.email.replace(/[^a-zA-Z0-9]/g, '_');
+          fbDb.collection('affiliates').doc(userDocId).set({ redeemedPasscodes: userPasscodes }, { merge: true });
+        } catch(e) {}
+      }
+    }
+
+    let currentEditingSubSections = [];
+    let isAdminUnlocked = false;
+    const ADMIN_USER = 'admin';
+    const ADMIN_PASS = '110708';
+
+    let fbAuth = null;
+    let fbDb = null;
+
+    function initFirebase() {
+      try {
+        if (typeof firebase !== 'undefined' && firebaseConfig) {
+          const cfg = JSON.parse(firebaseConfig);
+          if (!firebase.apps.length) {
+            firebase.initializeApp(cfg);
+          }
+          fbAuth = firebase.auth();
+          fbDb = firebase.firestore();
+
+          fbDb.collection('programs').onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              const livePrograms = [];
+              snapshot.forEach(doc => {
+                livePrograms.push(doc.data());
+              });
+              programs = livePrograms;
+              localStorage.setItem(STORAGE_KEY_PROGRAMS, JSON.stringify(programs));
+              renderPrograms();
+              if (isAdminUnlocked) {
+                renderAdminProgramList();
+                populateProgramCheckboxes();
+              }
+            }
+          }, (err) => {
+            console.warn("Firestore sync notice:", err);
+          });
+        }
+      } catch (err) {
+        console.warn("Firebase init notice:", err);
+      }
+    }
+
+    function getTodayDate() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function showToast(msg) {
+      const wrap = document.getElementById('toastWrap');
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      toast.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>${msg}</span>
+      `;
+      wrap.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s';
+        setTimeout(() => toast.remove(), 250);
+      }, 2800);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedUser = localStorage.getItem(STORAGE_KEY_USER);
+      if (savedUser) {
+        try {
+          currentUser = JSON.parse(savedUser);
+        } catch(e) {}
+      }
+
+      initFirebase();
+      checkLoginGate();
+      loadUserScopedData();
+      renderUserProfile();
+      renderPrograms();
+      renderPasscodeUI();
+      initSalesYearDropdown();
+      renderSales();
+      renderContentProgress();
+    });
+
+    const frontPageGate = document.getElementById('frontPageGate');
+
+    function checkLoginGate() {
+      if (!currentUser) {
+        frontPageGate.style.display = 'flex';
+      } else {
+        const found = affiliatesDirectory.find(a => a.email.toLowerCase() === currentUser.email.toLowerCase());
+        if (found && found.status === 'banned') {
+          showToast('Akaun anda telah disekat oleh Admin.');
+          handleLogout();
+          return;
+        }
+        frontPageGate.style.display = 'none';
+      }
+    }
+
+    function triggerDirectGoogleAuth() {
+      const btnText = document.getElementById('btnGoogleText');
+      if (btnText) btnText.innerText = "Menyambung Google...";
+
+      if (!fbAuth) {
+        if (btnText) btnText.innerText = "Masuk Terus dengan Google";
+        showToast("Sila gunakan borang nama & emel di bawah.");
+        return;
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      fbAuth.signInWithPopup(provider)
+        .then((res) => {
+          if (btnText) btnText.innerText = "Masuk Terus dengan Google";
+          const user = res.user;
+          registerAndLoginAffiliate(user.displayName || 'Affiliate Kinder', user.email, 'Google One-Click SSO');
+        })
+        .catch((err) => {
+          console.warn("Google Sign-In Error:", err.code);
+          if (btnText) btnText.innerText = "Masuk Terus dengan Google";
+          showToast("Sila masukkan nama & emel anda pada kotak di bawah.");
+        });
+    }
+
+    function handleManualLogin(e) {
+      e.preventDefault();
+      const name = document.getElementById('inpManualName').value.trim();
+      const email = document.getElementById('inpManualEmail').value.trim();
+      if (!name || !email) return;
+
+      registerAndLoginAffiliate(name, email, 'Manual Gmail Input');
+    }
+
+    function registerAndLoginAffiliate(name, email, method) {
+      const now = new Date().toLocaleString('ms-MY');
+      let affiliate = affiliatesDirectory.find(a => a.email.toLowerCase() === email.toLowerCase());
+
+      if (affiliate) {
+        if (affiliate.status === 'banned') {
+          showToast('Maaf, akaun emel ini telah disekat oleh Admin!');
+          return;
+        }
+        affiliate.lastLogin = now;
+        affiliate.loginCount = (affiliate.loginCount || 1) + 1;
+        affiliate.name = name;
+      } else {
+        affiliate = {
+          id: 'aff_' + Date.now(),
+          name,
+          email,
+          createdAt: now,
+          lastLogin: now,
+          loginCount: 1,
+          loginMethod: method,
+          status: 'active'
+        };
+        affiliatesDirectory.push(affiliate);
+      }
+
+      localStorage.setItem(STORAGE_KEY_AFFILIATES, JSON.stringify(affiliatesDirectory));
+      currentUser = { name, email, loggedAt: now };
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(currentUser));
+
+      if (fbDb) {
+        try {
+          fbDb.collection('affiliates').doc(email.replace(/[^a-zA-Z0-9]/g, '_')).set(affiliate, { merge: true });
+        } catch(e) {}
+      }
+
+      loadUserScopedData();
+      checkLoginGate();
+      renderUserProfile();
+      renderSales();
+      renderContentProgress();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast(`Selamat datang, ${name}!`);
+    }
+
+    function renderUserProfile() {
+      const topBadge = document.getElementById('topUserBadge');
+      const topAdminBtn = document.getElementById('topAdminBtn');
+      const drawerAdminSection = document.getElementById('drawerAdminSection');
+      const drawerAuth = document.getElementById('drawerAuthBox');
+
+      if (currentUser) {
+        topBadge.style.display = 'inline-flex';
+        document.getElementById('topUserName').innerText = currentUser.name;
+        document.getElementById('topUserInitial').innerText = currentUser.name.charAt(0).toUpperCase();
+
+        const isMasterAdminEmail = (currentUser.email || '').toLowerCase().trim() === MASTER_ADMIN_EMAIL.toLowerCase().trim();
+
+        if (isMasterAdminEmail) {
+          topAdminBtn.style.display = 'inline-flex';
+          drawerAdminSection.style.display = 'block';
+        } else {
+          topAdminBtn.style.display = 'none';
+          drawerAdminSection.style.display = 'none';
+        }
+
+        drawerAuth.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div onclick="openUserProfileModal()" style="cursor:pointer;">
+              <strong style="font-size:14px; display:block;">${currentUser.name}</strong>
+              <span style="font-size:11px; color:rgba(17,17,17,0.7);">${currentUser.email}</span>
+            </div>
+            <button onclick="handleLogout()" style="color:red; font-size:13px; background:none; border:none; cursor:pointer;">Keluar</button>
+          </div>
+        `;
+      } else {
+        topBadge.style.display = 'none';
+        topAdminBtn.style.display = 'none';
+        drawerAdminSection.style.display = 'none';
+        drawerAuth.innerHTML = `
+          <button onclick="checkLoginGate()" class="btn btn-jet btn-block" style="padding:11px;">
+            Log Masuk Gmail
+          </button>
+        `;
+      }
+    }
+
+    function openUserProfileModal() {
+      if (!currentUser) return;
+      document.getElementById('profInputName').value = currentUser.name || '';
+      document.getElementById('profInputEmail').value = currentUser.email || '';
+      document.getElementById('profModalInitial').innerText = (currentUser.name || 'K').charAt(0).toUpperCase();
+      document.getElementById('userProfileModal').classList.add('active');
+    }
+
+    function closeUserProfileModal() {
+      document.getElementById('userProfileModal').classList.remove('active');
+    }
+
+    function handleSaveUserProfile(e) {
+      e.preventDefault();
+      const updatedName = document.getElementById('profInputName').value.trim();
+      if (!updatedName) {
+        showToast('Sila masukkan nama anda!');
+        return;
+      }
+
+      currentUser.name = updatedName;
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(currentUser));
+
+      const aff = affiliatesDirectory.find(a => a.email.toLowerCase() === currentUser.email.toLowerCase());
+      if (aff) {
+        aff.name = updatedName;
+        localStorage.setItem(STORAGE_KEY_AFFILIATES, JSON.stringify(affiliatesDirectory));
+        if (fbDb) {
+          try {
+            fbDb.collection('affiliates').doc(currentUser.email.replace(/[^a-zA-Z0-9]/g, '_')).set({ name: updatedName }, { merge: true });
+          } catch(err) {}
+        }
+      }
+
+      renderUserProfile();
+      closeUserProfileModal();
+      showToast('Nama profil anda berjaya dikemaskini!');
+    }
+
+    function handleLogout() {
+      if (fbAuth) {
+        try { fbAuth.signOut(); } catch(e){}
+      }
+      currentUser = null;
+      localStorage.removeItem(STORAGE_KEY_USER);
+      toggleDrawer(false);
+      checkLoginGate();
+      loadUserScopedData();
+      renderUserProfile();
+      renderSales();
+      renderContentProgress();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast('Sesi ditamatkan.');
+    }
+
+    /* PENGURUSAN BCL SAFE (URL: https://bcl.my/) */
+    function getCleanBclUrl() {
+      let url = (bclUrl || 'https://bcl.my/').trim();
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      return url;
+    }
+
+    function openBclSafely(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      toggleDrawer(false);
+      document.getElementById('bclDialogModal').classList.add('active');
+    }
+
+    function closeBclDialogModal() {
+      document.getElementById('bclDialogModal').classList.remove('active');
+    }
+
+    // FUNGSI MELANCARKAN SAFARI / CHROME DENGAN TEPAT
+    function launchBclSafariNow() {
+      const targetUrl = getCleanBclUrl();
+      
+      // Kunci data sesi supaya tidak hilang
+      if (currentUser) {
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(currentUser));
+      }
+
+      // Cipta pautan tulen dan klik secara direct
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Tutup popup modal secara bersih
+      closeBclDialogModal();
+    }
+
+    function copyBclUrlToClipboard() {
+      const url = getCleanBclUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Pautan rasmi BCL disalin!');
+          closeBclDialogModal();
+        }).catch(() => fallbackCopyText(url));
+      } else {
+        fallbackCopyText(url);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Pautan rasmi BCL disalin!');
+      closeBclDialogModal();
+    }
+
+    function getAllowedProgramIds() {
+      if (!userPasscodes || userPasscodes.length === 0) return [];
+      const allowedSet = new Set();
+
+      userPasscodes.forEach(code => {
+        const cUpper = code.toUpperCase();
+        const found = passcodes.find(p => p.code.toUpperCase() === cUpper && p.status === 'active');
+        if (found && found.allowedPrograms) {
+          found.allowedPrograms.forEach(id => allowedSet.add(id));
+        }
+
+        const direct = programs.find(p => (p.passcode || '').toUpperCase() === cUpper);
+        if (direct) {
+          allowedSet.add(direct.id);
+        }
+      });
+
+      return Array.from(allowedSet);
+    }
+
+    function renderPrograms() {
+      const container = document.getElementById('programsListContainer');
+      const saleSelect = document.getElementById('inpSaleProgram');
+      const modalSelect = document.getElementById('inpModalSaleProgram');
+      
+      container.innerHTML = '';
+      saleSelect.innerHTML = '';
+      if (modalSelect) modalSelect.innerHTML = '';
+
+      if (programs.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column:1/-1; background:#fff; border-radius:24px; padding:32px; text-align:center; border:2.5px dashed var(--c-jet); box-shadow:0 4px 0 var(--c-jet);">
+            <div style="width:52px; height:52px; border-radius:18px; background:var(--c-bubblegum); margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--c-jet);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <h4 style="font-size:18px;">Belum Ada Program Dimuat Naik</h4>
+            <p style="font-size:13px; color:rgba(17,17,17,0.7); max-width:340px; margin:6px auto 16px;">
+              Buka Konsol Pentadbir (Admin) untuk memasukkan pakej program anda.
+            </p>
+          </div>
+        `;
+        const defOpt = document.createElement('option');
+        defOpt.value = '';
+        defOpt.innerText = '-- Sila Tambah Program di Admin --';
+        saleSelect.appendChild(defOpt);
+        if (modalSelect) modalSelect.appendChild(defOpt.cloneNode(true));
+        return;
+      }
+
+      const allowedIds = getAllowedProgramIds();
+      let activeCount = 0;
+
+      programs.forEach((prog, index) => {
+        const isUnlocked = allowedIds.includes(prog.id);
+        if (isUnlocked) activeCount++;
+
+        const opt = document.createElement('option');
+        opt.value = prog.title;
+        opt.innerText = prog.title;
+        saleSelect.appendChild(opt);
+        if (modalSelect) modalSelect.appendChild(opt.cloneNode(true));
+
+        const filledCount = (prog.subSections || []).filter(s => (s.content || '').trim() !== '').length;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.justifyContent = 'space-between';
+        
+        const colorPaletteTheme = PASTEL_RAINBOW_PALETTE[index % PASTEL_RAINBOW_PALETTE.length];
+        card.style.background = colorPaletteTheme.bg;
+        card.style.color = colorPaletteTheme.text;
+        card.style.border = '2.5px solid var(--c-jet)';
+        card.style.boxShadow = '0 6px 0 var(--c-jet)';
+
+        card.innerHTML = `
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span class="badge" style="background:#fff; color:var(--c-jet);">Program #${index + 1}</span>
+              ${isUnlocked 
+                ? `<span class="badge badge-unlocked">
+                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                     <span>Unlocked</span>
+                   </span>`
+                : `<span class="badge badge-locked">
+                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                     <span>Terkunci</span>
+                   </span>`
+              }
+            </div>
+            <h4 style="font-size:20px; margin-bottom:6px;">${prog.title}</h4>
+            <p style="font-size:13px; opacity:0.85; margin-bottom:16px; line-height:1.4;">${prog.desc || 'Akses modul latihan & panduan promosi.'}</p>
+          </div>
+
+          <div style="border-top:2px solid var(--c-jet); padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px;">
+              Status: ${isUnlocked ? '<span style="color:#0E6245; font-weight:900;">Akses Sah</span>' : '<span style="color:#b71c1c; font-weight:900;">Perlu Kod Akses</span>'}
+            </span>
+            ${isUnlocked 
+              ? `<button onclick="openProgramDetails('${prog.id}')" class="btn btn-jet" style="padding:8px 16px; font-size:12px;">
+                   <span>Buka Modul (${filledCount})</span>
+                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                 </button>`
+              : `<button onclick="goToEnterPasscode()" class="btn btn-sunny" style="padding:8px 14px; font-size:12px;">
+                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5-2 2H5v3h3l2-2 1.5 1.5 4-4-1.5-1.5 3.5-3.5L21 2z"></path></svg>
+                   <span>Tebus Kod</span>
+                 </button>`
+            }
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('heroModulesCount').innerText = `${activeCount} / ${programs.length} Program`;
+      document.getElementById('heroPasscodeTag').innerText = `${userPasscodes.length} Kod Aktif`;
+    }
+
+    function goToEnterPasscode() {
+      switchTab('passcode');
+      const inp = document.getElementById('inpPasscodeActivation');
+      inp.value = '';
+      inp.focus();
+      showToast('Sila masukkan kod khas yang diberikan oleh Admin.');
+    }
+
+    function handleApplyPasscode(e) {
+      e.preventDefault();
+      const code = document.getElementById('inpPasscodeActivation').value.trim().toUpperCase();
+      if (!code) return;
+
+      const isValidGlobal = passcodes.find(p => p.code.toUpperCase() === code && p.status === 'active');
+      const isValidDirect = programs.find(p => (p.passcode || '').toUpperCase() === code);
+
+      if (!isValidGlobal && !isValidDirect) {
+        showToast('Kod akses tidak sah! Sila dapatkan kod yang betul daripada Admin.');
+        return;
+      }
+
+      if (userPasscodes.includes(code)) {
+        showToast('Kod ini telah pun aktif dalam akaun anda!');
+        document.getElementById('inpPasscodeActivation').value = '';
+        return;
+      }
+
+      userPasscodes.push(code);
+      saveUserPasscodes();
+
+      document.getElementById('inpPasscodeActivation').value = '';
+      renderPrograms();
+      renderPasscodeUI();
+      showToast(`Kod ${code} berjaya ditambah! Modul telah dibuka.`);
+      switchTab('programs');
+    }
+
+    function renderPasscodeUI() {
+      const holder = document.getElementById('userPasscodesListHolder');
+      const countEl = document.getElementById('userPasscodesCount');
+      if (countEl) countEl.innerText = userPasscodes.length;
+
+      holder.innerHTML = '';
+      if (userPasscodes.length === 0) {
+        holder.innerHTML = '<p style="font-size:12px; color:rgba(17,17,17,0.7); text-align:center; padding:10px;">Belum ada kod aktif yang ditebus.</p>';
+        return;
+      }
+
+      userPasscodes.forEach((code) => {
+        let info = 'Akses Program Sah';
+        const directProg = programs.find(p => (p.passcode || '').toUpperCase() === code);
+        if (directProg) {
+          info = directProg.title;
+        } else {
+          const vip = passcodes.find(p => p.code.toUpperCase() === code);
+          if (vip) info = `${vip.name} (${vip.allowedPrograms.length} Program)`;
+        }
+
+        const tag = document.createElement('div');
+        tag.style.display = 'flex';
+        tag.style.justifyContent = 'space-between';
+        tag.style.alignItems = 'center';
+        tag.style.background = '#ffffff';
+        tag.style.padding = '8px 12px';
+        tag.style.borderRadius = '14px';
+        tag.style.border = '2px solid var(--c-jet)';
+        tag.style.boxShadow = '0 2px 0 var(--c-jet)';
+        tag.innerHTML = `
+          <div>
+            <strong style="font-size:13px; color:var(--c-jet); font-family:monospace;">${code}</strong>
+            <span style="font-size:11px; color:#0E6245; display:block; font-weight:900;">✓ ${info}</span>
+          </div>
+          <button onclick="removeSingleUserPasscode('${code}')" class="btn btn-outline" style="padding:4px 8px; font-size:11px; color:red; border-radius:8px;" title="Padam Kod Ini">
+            Padam
+          </button>
+        `;
+        holder.appendChild(tag);
+      });
+    }
+
+    function removeSingleUserPasscode(codeToRemove) {
+      userPasscodes = userPasscodes.filter(c => c !== codeToRemove);
+      saveUserPasscodes();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast(`Kod ${codeToRemove} telah dipadam.`);
+    }
+
+    function clearAllUserPasscodes() {
+      if (!confirm('Adakah anda pasti mahu memadam semua kod akses yang telah ditebus?')) return;
+      userPasscodes = [];
+      saveUserPasscodes();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast('Semua kod akses telah dikosongkan.');
+    }
+
+    const progDetailModal = document.getElementById('progDetailModal');
+    let activeProgramBeingViewed = null;
+
+    function openProgramDetails(progId) {
+      const prog = programs.find(p => p.id === progId);
+      if (!prog) return;
+
+      activeProgramBeingViewed = prog;
+      document.getElementById('pmTitle').innerText = prog.title;
+      document.getElementById('pmBadge').innerText = 'Modul Kandungan';
+
+      const filledSections = (prog.subSections || []).filter(s => (s.content || '').trim() !== '');
+      const menuHolder = document.getElementById('pmModulesMenuHolder');
+      menuHolder.innerHTML = '';
+
+      document.getElementById('pmViewList').style.display = 'flex';
+      document.getElementById('pmViewDetail').style.display = 'none';
+
+      if (filledSections.length === 0) {
+        menuHolder.innerHTML = `
+          <div style="text-align:center; padding:30px; color:rgba(17,17,17,0.6); background:#fff; border-radius:20px; border:2.5px solid var(--c-jet); box-shadow:0 4px 0 var(--c-jet);">
+            <p style="font-size:14px;">Bahan bagi program ini sedang dikemaskini oleh Admin.</p>
+          </div>
+        `;
+      } else {
+        filledSections.forEach((sec, idx) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'module-menu-btn';
+          item.id = `modBtnItem_${idx}`;
+
+          const color = PASTEL_RAINBOW_PALETTE[idx % PASTEL_RAINBOW_PALETTE.length];
+          item.style.backgroundColor = color.bg;
+          item.style.color = color.text;
+
+          item.onclick = (e) => {
+            document.querySelectorAll('.module-menu-btn').forEach(b => b.classList.remove('active'));
+            item.classList.add('active');
+            openSingleModuleDetail(sec);
+          };
+
+          const displayCleanTitle = cleanTitleNumbering(sec.title);
+
+          item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="width:32px; height:32px; border-radius:12px; background:${color.badgeBg}; color:${color.badgeText}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; border:2px solid var(--c-jet); box-shadow:0 2px 0 var(--c-jet);">
+                ${idx + 1}
+              </span>
+              <span>${displayCleanTitle}</span>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          `;
+          menuHolder.appendChild(item);
+        });
+      }
+
+      progDetailModal.classList.add('active');
+    }
+
+    function openSingleModuleDetail(sec) {
+      document.getElementById('pmViewList').style.display = 'none';
+      const detailView = document.getElementById('pmViewDetail');
+      detailView.style.display = 'flex';
+
+      const cleanTitle = cleanTitleNumbering(sec.title);
+      document.getElementById('pmSingleTitle').innerText = cleanTitle;
+      const bodyHolder = document.getElementById('pmSingleBody');
+      bodyHolder.innerHTML = '';
+
+      const text = (sec.content || '').trim();
+      const isUrl = text.startsWith('http://') || text.startsWith('https://');
+
+      if (isUrl) {
+        bodyHolder.innerHTML = `
+          <div class="embedded-frame-wrap">
+            <iframe 
+              src="${text}" 
+              title="${cleanTitle}"
+              loading="lazy"
+              allow="clipboard-read; clipboard-write; fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals">
+            </iframe>
+          </div>
+        `;
+      } else {
+        const containsHtmlTag = /<[a-z][\s\S]*>/i.test(text);
+        const container = document.createElement('div');
+        container.className = 'card';
+        container.style.background = '#ffffff';
+        container.style.border = '2.5px solid var(--c-jet)';
+        container.style.padding = '18px';
+        container.style.marginBottom = '0';
+        container.style.fontSize = '14px';
+        container.style.lineHeight = '1.65';
+        container.style.boxShadow = '0 4px 0 var(--c-jet)';
+
+        if (containsHtmlTag) {
+          container.innerHTML = text;
+        } else {
+          container.style.whiteSpace = 'pre-line';
+          container.innerText = text;
+        }
+
+        bodyHolder.appendChild(container);
+      }
+    }
+
+    function backToModulesList() {
+      const bodyHolder = document.getElementById('pmSingleBody');
+      if (bodyHolder) bodyHolder.innerHTML = '';
+
+      document.getElementById('pmViewDetail').style.display = 'none';
+      document.getElementById('pmViewList').style.display = 'flex';
+    }
+
+    function closeProgramModal() {
+      const bodyHolder = document.getElementById('pmSingleBody');
+      if (bodyHolder) bodyHolder.innerHTML = '';
+      progDetailModal.classList.remove('active');
+    }
+
+    /* ================= DROPDOWN TAHUN (2026 - 2100) ================= */
+    function initSalesYearDropdown() {
+      const yearSelect = document.getElementById('selectSalesYear');
+      if (!yearSelect) return;
+      yearSelect.innerHTML = '';
+
+      const startYear = 2026;
+      const endYear = 2100;
+
+      for (let y = startYear; y <= endYear; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.innerText = y;
+        if (y === currentSelectedSalesYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+      }
+
+      document.getElementById('selectSalesMonth').value = currentSelectedSalesMonth;
+    }
+
+    function handleSalesMonthYearChange() {
+      currentSelectedSalesMonth = parseInt(document.getElementById('selectSalesMonth').value);
+      currentSelectedSalesYear = parseInt(document.getElementById('selectSalesYear').value);
+      renderSalesCalendar();
+    }
+
+    function navigateSalesMonth(step) {
+      currentSelectedSalesMonth += step;
+      if (currentSelectedSalesMonth < 0) {
+        if (currentSelectedSalesYear > 2026) {
+          currentSelectedSalesMonth = 11;
+          currentSelectedSalesYear -= 1;
+        } else {
+          currentSelectedSalesMonth = 0;
+        }
+      } else if (currentSelectedSalesMonth > 11) {
+        if (currentSelectedSalesYear < 2100) {
+          currentSelectedSalesMonth = 0;
+          currentSelectedSalesYear += 1;
+        } else {
+          currentSelectedSalesMonth = 11;
+        }
+      }
+
+      document.getElementById('selectSalesMonth').value = currentSelectedSalesMonth;
+      document.getElementById('selectSalesYear').value = currentSelectedSalesYear;
+      renderSalesCalendar();
+    }
+
+    function resetSalesCalendarToCurrent() {
+      const d = new Date();
+      currentSelectedSalesYear = Math.max(2026, d.getFullYear());
+      currentSelectedSalesMonth = d.getMonth();
+
+      document.getElementById('selectSalesMonth').value = currentSelectedSalesMonth;
+      document.getElementById('selectSalesYear').value = currentSelectedSalesYear;
+      renderSalesCalendar();
+      showToast('Kembali ke kalendar bulan semasa!');
+    }
+
+    /* ================= SALES TRACKER ================= */
+    let selectedDateForModal = null;
+
+    function renderSales() {
+      const today = getTodayDate();
+      document.getElementById('salesTodayDateDisplay').innerText = `Tarikh: ${today}`;
+      document.getElementById('inpTargetRM').value = dailyTarget.target || '';
+
+      const todaysTotal = salesHistory.filter(s => s.date === today).reduce((acc, c) => acc + Number(c.amount), 0);
+      document.getElementById('inpAchievedRM').value = todaysTotal;
+
+      const tgt = Number(dailyTarget.target) || 1;
+      const pct = Math.min(Math.round((todaysTotal / tgt) * 100), 100);
+      document.getElementById('targetBarFill').style.width = pct + '%';
+      document.getElementById('targetPercentLabel').innerText = pct + '%';
+
+      const listHolder = document.getElementById('salesListHolder');
+      listHolder.innerHTML = '';
+      if (salesHistory.length === 0) {
+        listHolder.innerHTML = '<p style="font-size:12px; color:rgba(17,17,17,0.5); text-align:center; padding:12px;">Belum ada rekod jualan peribadi anda.</p>';
+      } else {
+        salesHistory.slice().reverse().forEach(s => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '10px 14px';
+          row.style.borderRadius = '14px';
+          row.style.background = 'var(--c-oat)';
+          row.style.border = '2px solid var(--c-jet)';
+          row.style.fontSize = '13px';
+          row.innerHTML = `
+            <div>
+              <span>${s.customer}</span>
+              <span style="font-size:11px; color:rgba(17,17,17,0.6); display:block;">${s.program} • ${s.date}</span>
+            </div>
+            <span style="color:var(--c-orange); font-size:15px; font-weight:900;">+RM ${Number(s.amount).toFixed(2)}</span>
+          `;
+          listHolder.appendChild(row);
+        });
+      }
+
+      const grand = salesHistory.reduce((acc, c) => acc + Number(c.amount), 0);
+      document.getElementById('salesTotalSumLabel').innerText = `Jumlah: RM ${grand.toFixed(2)}`;
+
+      renderSalesCalendar();
+    }
+
+    function renderSalesCalendar() {
+      const grid = document.getElementById('salesCalendarGrid');
+      grid.innerHTML = '';
+
+      const year = currentSelectedSalesYear;
+      const month = currentSelectedSalesMonth;
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      const dNow = new Date();
+      const isActualCurrentMonth = (dNow.getFullYear() === year && dNow.getMonth() === month);
+      const actualTodayDate = dNow.getDate();
+
+      const daysHeaders = ['AHD', 'ISN', 'SEL', 'RAB', 'KHA', 'JUM', 'SAB'];
+      daysHeaders.forEach(d => {
+        const h = document.createElement('div');
+        h.className = 'cal-cell-header';
+        h.innerText = d;
+        grid.appendChild(h);
+      });
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        grid.appendChild(empty);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const daySales = salesHistory.filter(s => s.date === dateStr);
+        const hasSale = daySales.length > 0;
+        const totalDayAmount = daySales.reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        if (isActualCurrentMonth && day === actualTodayDate) {
+          cell.classList.add('today');
+        }
+        if (hasSale) cell.classList.add('has-sale');
+
+        cell.onclick = () => openDateDetailsModal(dateStr, day, daySales);
+
+        cell.innerHTML = `
+          <span>${day}</span>
+          ${hasSale ? `<span style="font-size:10px; line-height:1; font-weight:900;">RM${Math.round(totalDayAmount)}</span>` : ''}
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    /* MODAL KLIK TARIKH KALENDAR */
+    function openDateDetailsModal(dateStr, day, daySales) {
+      selectedDateForModal = dateStr;
+      document.getElementById('modalSelectedDateTitle').innerText = `Tarikh: ${dateStr}`;
+      const list = document.getElementById('modalSelectedDateSalesList');
+      list.innerHTML = '';
+
+      if (daySales.length === 0) {
+        list.innerHTML = '<p style="font-size:12px; color:rgba(17,17,17,0.5); text-align:center; padding:10px;">Tiada jualan direkodkan pada tarikh ini.</p>';
+      } else {
+        daySales.forEach(s => {
+          const item = document.createElement('div');
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          item.style.padding = '8px 10px';
+          item.style.background = '#fff';
+          item.style.borderRadius = '12px';
+          item.style.border = '1.5px solid var(--c-jet)';
+          item.style.fontSize = '12px';
+          item.innerHTML = `
+            <div>
+              <strong>${s.customer}</strong>
+              <span style="font-size:10px; color:rgba(17,17,17,0.6); display:block;">${s.program}</span>
+            </div>
+            <span style="color:var(--c-orange); font-weight:900;">+RM ${Number(s.amount).toFixed(2)}</span>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('inpModalSaleCustomer').value = '';
+      document.getElementById('inpModalSaleAmount').value = '';
+
+      document.getElementById('dateDetailsModal').classList.add('active');
+    }
+
+    function closeDateDetailsModal() {
+      document.getElementById('dateDetailsModal').classList.remove('active');
+    }
+
+    function executeAddNewSaleFromModal() {
+      const customer = document.getElementById('inpModalSaleCustomer').value.trim();
+      const program = document.getElementById('inpModalSaleProgram').value;
+      const amount = document.getElementById('inpModalSaleAmount').value;
+
+      if (!customer) {
+        showToast('Sila masukkan nama pelanggan!');
+        return;
+      }
+      if (!amount || Number(amount) <= 0) {
+        showToast('Sila masukkan nilai komisen yang sah!');
+        return;
+      }
+
+      const saleRecord = {
+        id: 'sale_' + Date.now(),
+        customer,
+        program,
+        amount: Number(amount),
+        date: selectedDateForModal,
+        userEmail: currentUser ? currentUser.email : 'guest'
+      };
+
+      salesHistory.push(saleRecord);
+      localStorage.setItem(getUserSalesStorageKey(), JSON.stringify(salesHistory));
+
+      if (fbDb && currentUser) {
+        try { fbDb.collection('sales').add(saleRecord); } catch(e){}
+      }
+
+      renderSales();
+      closeDateDetailsModal();
+      showToast(`Jualan RM ${amount} berjaya ditambah untuk tarikh ${selectedDateForModal}!`);
+    }
+
+    function executeSaveDailyTarget() {
+      const val = Number(document.getElementById('inpTargetRM').value) || 0;
+      dailyTarget.target = val;
+      dailyTarget.date = getTodayDate();
+      localStorage.setItem(getUserTargetStorageKey(), JSON.stringify(dailyTarget));
+      renderSales();
+      showToast('Sasaran harian berjaya disimpan!');
+    }
+
+    function executeAddNewSale() {
+      const customer = document.getElementById('inpSaleCustomer').value.trim();
+      const program = document.getElementById('inpSaleProgram').value;
+      const amount = document.getElementById('inpSaleAmount').value;
+
+      if (!customer) {
+        showToast('Sila masukkan nama pembeli!');
+        return;
+      }
+      if (!program) {
+        showToast('Sila cipta dan pilih program pakej terlebih dahulu!');
+        return;
+      }
+      if (!amount || Number(amount) <= 0) {
+        showToast('Sila masukkan nilai jualan komisen yang sah!');
+        return;
+      }
+
+      const saleRecord = {
+        id: 'sale_' + Date.now(),
+        customer,
+        program,
+        amount: Number(amount),
+        date: getTodayDate(),
+        userEmail: currentUser ? currentUser.email : 'guest'
+      };
+      salesHistory.push(saleRecord);
+      localStorage.setItem(getUserSalesStorageKey(), JSON.stringify(salesHistory));
+
+      if (fbDb && currentUser) {
+        try {
+          fbDb.collection('sales').add(saleRecord);
+        } catch(e) {}
+      }
+
+      document.getElementById('inpSaleCustomer').value = '';
+      document.getElementById('inpSaleAmount').value = '';
+
+      renderSales();
+      showToast(`Jualan RM ${amount} berjaya direkodkan!`);
+    }
+
+    /* ================= SUMMARY REPORT MODAL ================= */
+    let activeSummaryView = 'month';
+
+    function openSalesSummaryModal() {
+      renderSummaryReport();
+      document.getElementById('salesSummaryModal').classList.add('active');
+    }
+
+    function closeSalesSummaryModal() {
+      document.getElementById('salesSummaryModal').classList.remove('active');
+    }
+
+    function switchSummaryView(view) {
+      activeSummaryView = view;
+      document.getElementById('sumToggleWeek').classList.toggle('active', view === 'week');
+      document.getElementById('sumToggleMonth').classList.toggle('active', view === 'month');
+      document.getElementById('sumToggleYear').classList.toggle('active', view === 'year');
+      document.getElementById('sumToggleLastYear').classList.toggle('active', view === 'last_year');
+      renderSummaryReport();
+    }
+
+    function getStartAndEndOfWeek(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diffToMonday = (day === 0 ? -6 : 1) - day;
+      
+      const monday = new Date(date);
+      monday.setDate(date.getDate() + diffToMonday);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      
+      return { monday, sunday };
+    }
+
+    function formatDateShort(d) {
+      const months = ['JAN', 'FEB', 'MAC', 'APR', 'MEI', 'JUN', 'JUL', 'OGOS', 'SEP', 'OKT', 'NOV', 'DIS'];
+      return `${d.getDate()} ${months[d.getMonth()]}`;
+    }
+
+    function renderSummaryReport() {
+      const now = new Date();
+      let filteredSales = [];
+      let periodLabel = '';
+      let daysCount = 30;
+
+      if (activeSummaryView === 'week') {
+        const { monday, sunday } = getStartAndEndOfWeek(now);
+        periodLabel = `${formatDateShort(monday)} - ${formatDateShort(sunday)} ${now.getFullYear()}`;
+        
+        filteredSales = salesHistory.filter(s => {
+          const sDate = new Date(s.date);
+          return sDate >= new Date(monday.setHours(0,0,0,0)) && sDate <= new Date(sunday.setHours(23,59,59,999));
+        });
+        daysCount = 7;
+      } else if (activeSummaryView === 'month') {
+        const months = ['JANUARI', 'FEBRUARI', 'MAC', 'APRIL', 'MEI', 'JUN', 'JULAI', 'OGOS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DISEMBER'];
+        periodLabel = `BULAN ${months[now.getMonth()]} ${now.getFullYear()}`;
+        
+        filteredSales = salesHistory.filter(s => {
+          const sDate = new Date(s.date);
+          return sDate.getFullYear() === now.getFullYear() && sDate.getMonth() === now.getMonth();
+        });
+        daysCount = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      } else if (activeSummaryView === 'year') {
+        const curYear = now.getFullYear();
+        periodLabel = `SEPANJANG TAHUN ${curYear}`;
+        
+        filteredSales = salesHistory.filter(s => {
+          const sDate = new Date(s.date);
+          return sDate.getFullYear() === curYear;
+        });
+        const startOfYear = new Date(curYear, 0, 1);
+        daysCount = Math.max(1, Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24)) + 1);
+      } else if (activeSummaryView === 'last_year') {
+        const prevYear = now.getFullYear() - 1;
+        periodLabel = `SEPANJANG TAHUN ${prevYear}`;
+        
+        filteredSales = salesHistory.filter(s => {
+          const sDate = new Date(s.date);
+          return sDate.getFullYear() === prevYear;
+        });
+        const isLeap = (prevYear % 4 === 0 && prevYear % 100 !== 0) || (prevYear % 400 === 0);
+        daysCount = isLeap ? 366 : 365;
+      }
+
+      document.getElementById('sumPeriodLabel').innerText = periodLabel;
+      document.getElementById('sumTotalCountBadge').innerText = `${filteredSales.length} JUALAN`;
+
+      const totalEarned = filteredSales.reduce((acc, curr) => acc + Number(curr.amount), 0);
+      document.getElementById('sumBigTotalRM').innerText = totalEarned.toFixed(2);
+
+      const avgPerDay = daysCount > 0 ? (totalEarned / daysCount).toFixed(2) : '0.00';
+      document.getElementById('sumAvgSubtitle').innerText = `${filteredSales.length} transaksi • RM ${avgPerDay} purata sehari`;
+
+      const dailyTgt = Number(dailyTarget.target) || 200;
+      const expectedTotal = dailyTgt * daysCount;
+      const targetPercent = expectedTotal > 0 ? Math.min(Math.round((totalEarned / expectedTotal) * 100), 100) : 0;
+      const statusNote = totalEarned >= expectedTotal ? 'Tahniah!' : 'Teruskan Usaha!';
+      document.getElementById('sumVsTargetPill').innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="2"></circle></svg>
+        <span>Capai Sasaran: <strong>${targetPercent}%</strong> (${statusNote})</span>
+      `;
+
+      const programStats = {};
+      filteredSales.forEach(s => {
+        const pName = s.program || 'Lain-lain';
+        if (!programStats[pName]) {
+          programStats[pName] = { count: 0, sum: 0 };
+        }
+        programStats[pName].count += 1;
+        programStats[pName].sum += Number(s.amount);
+      });
+
+      const progEntries = Object.entries(programStats);
+      const stackedBar = document.getElementById('sumStackedBar');
+      stackedBar.innerHTML = '';
+
+      const breakdownList = document.getElementById('sumBreakdownList');
+      breakdownList.innerHTML = '';
+
+      if (progEntries.length === 0) {
+        stackedBar.innerHTML = '<div style="width:100%; height:100%; background:#e0e0e0;"></div>';
+        breakdownList.innerHTML = '<p style="font-size:12px; color:rgba(17,17,17,0.5); text-align:center; padding:12px;">Tiada data jualan bagi tempoh ini.</p>';
+        return;
+      }
+
+      progEntries.forEach(([progName, data], idx) => {
+        const color = PASTEL_RAINBOW_PALETTE[idx % PASTEL_RAINBOW_PALETTE.length];
+        const pctOfTotal = totalEarned > 0 ? (data.sum / totalEarned) * 100 : 0;
+
+        const seg = document.createElement('div');
+        seg.className = 'stacked-bar-seg';
+        seg.style.width = `${pctOfTotal}%`;
+        seg.style.background = color.bg;
+        stackedBar.appendChild(seg);
+
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.fontSize = '14px';
+        row.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:12px; height:12px; border-radius:50%; background:${color.bg}; border:1.5px solid var(--c-jet);"></span>
+            <strong>${progName}</strong>
+            <span style="font-size:11px; color:rgba(17,17,17,0.6);">• ${data.count}</span>
+          </div>
+          <span style="font-weight:900; font-size:15px; color:var(--c-jet);">RM ${data.sum.toFixed(2)}</span>
+        `;
+        breakdownList.appendChild(row);
+      });
+    }
+
+    /* CONTENT PROGRESS */
+    function toggleCustomPlatformInput(show) {
+      const inputEl = document.getElementById('inp_custom_platform_text');
+      if (show) {
+        inputEl.style.display = 'block';
+        inputEl.focus();
+      } else {
+        inputEl.style.display = 'none';
+        inputEl.value = '';
+      }
+    }
+
+    function renderContentProgress() {
+      const today = getTodayDate();
+      document.getElementById('contentTodayDateLabel').innerText = `Tarikh: ${today}`;
+      const rec = contentRecords[today] || {};
+
+      document.getElementById('chk_tiktok').checked = !!rec.tiktok;
+      document.getElementById('chk_instagram').checked = !!rec.instagram;
+      document.getElementById('chk_facebook').checked = !!rec.facebook;
+      document.getElementById('chk_whatsapp').checked = !!rec.whatsapp;
+      document.getElementById('chk_threads').checked = !!rec.threads;
+
+      const hasCustom = !!rec.customPlatform;
+      document.getElementById('chk_custom_platform').checked = hasCustom;
+      toggleCustomPlatformInput(hasCustom);
+      if (hasCustom) {
+        document.getElementById('inp_custom_platform_text').value = rec.customPlatformText || '';
+      }
+
+      document.getElementById('chk_video').checked = !!rec.video;
+      document.getElementById('chk_carousel').checked = !!rec.carousel;
+      document.getElementById('chk_copywriting').checked = !!rec.copywriting;
+      document.getElementById('chk_live').checked = !!rec.live;
+      document.getElementById('chk_review').checked = !!rec.review;
+
+      renderContentCalendar();
+    }
+
+    function executeSaveProgress() {
+      const today = getTodayDate();
+      const isCustomChecked = document.getElementById('chk_custom_platform').checked;
+      const customText = isCustomChecked ? document.getElementById('inp_custom_platform_text').value.trim() : '';
+
+      const progressRecord = {
+        tiktok: document.getElementById('chk_tiktok').checked,
+        instagram: document.getElementById('chk_instagram').checked,
+        facebook: document.getElementById('chk_facebook').checked,
+        whatsapp: document.getElementById('chk_whatsapp').checked,
+        threads: document.getElementById('chk_threads').checked,
+        customPlatform: isCustomChecked,
+        customPlatformText: customText,
+        video: document.getElementById('chk_video').checked,
+        carousel: document.getElementById('chk_carousel').checked,
+        copywriting: document.getElementById('chk_copywriting').checked,
+        live: document.getElementById('chk_live').checked,
+        review: document.getElementById('chk_review').checked,
+      };
+
+      contentRecords[today] = progressRecord;
+      localStorage.setItem(getUserContentStorageKey(), JSON.stringify(contentRecords));
+
+      if (fbDb && currentUser) {
+        try {
+          const userDocId = currentUser.email.replace(/[^a-zA-Z0-9]/g, '_');
+          fbDb.collection('content_progress').doc(`${userDocId}_${today}`).set({
+            userEmail: currentUser.email,
+            date: today,
+            ...progressRecord
+          });
+        } catch(e){}
+      }
+
+      renderContentCalendar();
+      showToast('Progress content hari ini disimpan!');
+    }
+
+    function renderContentCalendar() {
+      const grid = document.getElementById('contentCalendarGrid');
+      grid.innerHTML = '';
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const todayDate = now.getDate();
+
+      const daysHeaders = ['AHD', 'ISN', 'SEL', 'RAB', 'KHA', 'JUM', 'SAB'];
+      daysHeaders.forEach(d => {
+        const h = document.createElement('div');
+        h.className = 'cal-cell-header';
+        h.innerText = d;
+        grid.appendChild(h);
+      });
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        grid.appendChild(empty);
+      }
+
+      let activeDaysCount = 0;
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const rec = contentRecords[dateStr];
+        const hasDone = rec && Object.values(rec).some(v => v === true);
+
+        if (hasDone) activeDaysCount++;
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        if (day === todayDate) cell.classList.add('today');
+        if (hasDone) cell.classList.add('has-progress');
+
+        cell.innerHTML = `
+          <span>${day}</span>
+          ${hasDone ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ''}
+        `;
+        grid.appendChild(cell);
+      }
+
+      document.getElementById('contentStreakTag').innerText = `${activeDaysCount} Hari Aktif`;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(t => t.style.display = 'none');
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.style.display = 'block';
+
+      document.querySelectorAll('.bar-btn').forEach(b => b.classList.remove('active'));
+      const activeBar = document.getElementById(`bar-${tabId}`);
+      if (activeBar) activeBar.classList.add('active');
+
+      document.querySelectorAll('.drawer-nav-btn').forEach(b => b.classList.remove('active'));
+      const activeDrawerBtn = document.getElementById(`drawerNav-${tabId}`);
+      if (activeDrawerBtn) activeDrawerBtn.classList.add('active');
+
+      toggleDrawer(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleDrawer(open) {
+      if (open) {
+        document.body.classList.add('drawer-open');
+      } else {
+        document.body.classList.remove('drawer-open');
+      }
+    }
+
+    function handleSaveBclSetting(e) {
+      e.preventDefault();
+      let inputVal = document.getElementById('admInputBclUrl').value.trim();
+      if (!inputVal.startsWith('http://') && !inputVal.startsWith('https://')) {
+        inputVal = 'https://' + inputVal;
+      }
+      bclUrl = inputVal;
+      localStorage.setItem(STORAGE_KEY_BCL, bclUrl);
+      showToast('Pautan BCL disimpan & dikemas kini!');
+    }
+
+    /* ADMIN DASHBOARD */
+    const adminModal = document.getElementById('adminModal');
+
+    function openAdminModal() {
+      adminModal.classList.add('active');
+      toggleDrawer(false);
+      if (isAdminUnlocked) {
+        showAdminPanel();
+      } else {
+        document.getElementById('admGateView').style.display = 'block';
+        document.getElementById('admPanelView').style.display = 'none';
+        document.getElementById('admUserInput').value = '';
+        document.getElementById('admPassInput').value = '';
+      }
+    }
+
+    function closeAdminModal() {
+      adminModal.classList.remove('active');
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('admUserInput').value.trim();
+      const pass = document.getElementById('admPassInput').value.trim();
+
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        isAdminUnlocked = true;
+        showAdminPanel();
+        showToast('Selamat datang Pentadbir Kinder Klub!');
+      } else {
+        showToast('Username atau password admin salah!');
+      }
+    }
+
+    function showAdminPanel() {
+      document.getElementById('admGateView').style.display = 'none';
+      document.getElementById('admPanelView').style.display = 'block';
+      document.getElementById('admInputBclUrl').value = bclUrl;
+      document.getElementById('admInputFirebaseConfig').value = firebaseConfig;
+      
+      toggleProgramView('list');
+      renderAdminProgramList();
+      renderAdminPasscodeList();
+      renderAdminAffiliatesTable();
+      populateProgramCheckboxes();
+      buildAdminSubSectionsInputs();
+    }
+
+    function lockAdminConsole() {
+      isAdminUnlocked = false;
+      document.getElementById('admGateView').style.display = 'block';
+      document.getElementById('admPanelView').style.display = 'none';
+      closeAdminModal();
+      showToast('Konsol pentadbir dikunci & kembali ke portal.');
+    }
+
+    function switchAdminTab(subTab) {
+      document.querySelectorAll('.adm-section').forEach(s => s.style.display = 'none');
+      document.querySelectorAll('#admPanelView .btn-outline').forEach(b => {
+        b.style.background = '#fff';
+        b.style.color = 'var(--c-jet)';
+      });
+
+      const activeBtn = document.getElementById(`admNav-${subTab}`);
+      if (activeBtn) {
+        activeBtn.style.background = 'var(--c-bubblegum)';
+        activeBtn.style.color = 'var(--c-jet)';
+      }
+      const targetSec = document.getElementById(`admSec-${subTab}`);
+      if (targetSec) targetSec.style.display = 'block';
+
+      if (subTab === 'programs') {
+        toggleProgramView('list');
+      } else if (subTab === 'affiliates') {
+        renderAdminAffiliatesTable();
+      }
+    }
+
+    function toggleProgramView(viewMode) {
+      const listView = document.getElementById('admProgListView');
+      const formView = document.getElementById('admProgFormView');
+      const btnList = document.getElementById('admProgSubToggleList');
+      const btnForm = document.getElementById('admProgSubToggleForm');
+
+      if (viewMode === 'form') {
+        listView.style.display = 'none';
+        formView.style.display = 'block';
+        btnList.className = 'btn btn-outline';
+        btnForm.className = 'btn btn-jet';
+      } else {
+        listView.style.display = 'block';
+        formView.style.display = 'none';
+        btnList.className = 'btn btn-jet';
+        btnForm.className = 'btn btn-outline';
+      }
+    }
+
+    function renderAdminAffiliatesTable() {
+      const tbody = document.getElementById('admAffiliatesTbody');
+      tbody.innerHTML = '';
+
+      document.getElementById('admAffTotalCount').innerText = affiliatesDirectory.length;
+      document.getElementById('admAffActiveCount').innerText = affiliatesDirectory.filter(a => a.status === 'active').length;
+      document.getElementById('admAffBannedCount').innerText = affiliatesDirectory.filter(a => a.status === 'banned').length;
+
+      if (affiliatesDirectory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:rgba(17,17,17,0.5);">Belum ada affiliate yang log masuk.</td></tr>';
+        return;
+      }
+
+      affiliatesDirectory.slice().reverse().forEach((aff) => {
+        const tr = document.createElement('tr');
+        const isBanned = aff.status === 'banned';
+
+        tr.innerHTML = `
+          <td><strong>${aff.name}</strong><br><span style="font-size:11px; color:rgba(17,17,17,0.6);">${aff.loginMethod || 'Gmail'}</span></td>
+          <td style="font-weight:900;">${aff.email}</td>
+          <td style="font-size:11px;">${aff.createdAt || '-'}<br><span style="font-size:11px; color:rgba(17,17,17,0.6);">Kali login: ${aff.loginCount || 1}</span></td>
+          <td><span class="badge ${isBanned ? 'badge-banned' : 'badge-active'}">${isBanned ? 'Disekat' : 'Aktif'}</span></td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button onclick="toggleAffiliateBan('${aff.email}')" class="btn btn-outline" style="padding:4px 8px; font-size:11px; color:${isBanned ? 'green' : 'red'};">
+                ${isBanned ? 'Nyahsekat' : 'Sekat'}
+              </button>
+              <button onclick="deleteAffiliate('${aff.email}')" class="btn btn-outline" style="padding:4px 8px; font-size:11px; color:red;">
+                ✕
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleAffiliateBan(email) {
+      const aff = affiliatesDirectory.find(a => a.email.toLowerCase() === email.toLowerCase());
+      if (!aff) return;
+      aff.status = aff.status === 'banned' ? 'active' : 'banned';
+      localStorage.setItem(STORAGE_KEY_AFFILIATES, JSON.stringify(affiliatesDirectory));
+      renderAdminAffiliatesTable();
+      showToast(`Status akses bagi ${email} telah diubah.`);
+    }
+
+    function deleteAffiliate(email) {
+      affiliatesDirectory = affiliatesDirectory.filter(a => a.email.toLowerCase() !== email.toLowerCase());
+      localStorage.setItem(STORAGE_KEY_AFFILIATES, JSON.stringify(affiliatesDirectory));
+      renderAdminAffiliatesTable();
+      showToast('Rekod affiliate dipadam.');
+    }
+
+    function exportAffiliatesToCSV() {
+      if (affiliatesDirectory.length === 0) {
+        showToast('Tiada rekod untuk dieksport.');
+        return;
+      }
+      let csv = 'Nama,Emel,Daftar Pertama,Waktu Terakhir,Bilangan Login,Status\n';
+      affiliatesDirectory.forEach(a => {
+        csv += `"${a.name}","${a.email}","${a.createdAt || ''}","${a.lastLogin || ''}","${a.loginCount || 1}","${a.status}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Kinder_Klub_Affiliates_${getTodayDate()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Fail CSV berjaya dimuat turun!');
+    }
+
+    function buildAdminSubSectionsInputs(existingSections = null) {
+      const container = document.getElementById('admSubSectionsFormHolder');
+      container.innerHTML = '';
+
+      if (existingSections && existingSections.length > 0) {
+        currentEditingSubSections = STANDARD_SUB_SECTIONS.map(std => {
+          const found = existingSections.find(e => e.key === std.key);
+          const rawTitle = found ? (found.title || std.title) : std.title;
+          return { key: std.key, title: cleanTitleNumbering(rawTitle), content: found ? found.content : '' };
+        });
+        existingSections.forEach(ext => {
+          if (!STANDARD_SUB_SECTIONS.some(std => std.key === ext.key)) {
+            currentEditingSubSections.push({ ...ext, title: cleanTitleNumbering(ext.title) });
+          }
+        });
+      } else {
+        currentEditingSubSections = STANDARD_SUB_SECTIONS.map(s => ({ key: s.key, title: cleanTitleNumbering(s.title), content: '' }));
+      }
+
+      currentEditingSubSections.forEach((sec, idx) => {
+        const row = document.createElement('div');
+        row.style.background = '#ffffff';
+        row.style.padding = '12px 14px';
+        row.style.borderRadius = '16px';
+        row.style.border = '2px solid var(--c-jet)';
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:6px;">
+            <span>${sec.title}</span>
+            ${idx >= 8 ? `<button type="button" onclick="removeCustomSection(${idx})" style="color:red; background:none; border:none; cursor:pointer;">Padam</button>` : ''}
+          </div>
+          <textarea id="admSub_${sec.key}" rows="2" placeholder="Tampal pautan URL atau kod HTML (Biarkan kosong jika tiada)..." style="font-size:12px; background:var(--c-oat);">${sec.content || ''}</textarea>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addNewCustomSubSectionInput() {
+      const rawTitle = prompt('Masukkan tajuk sub-bahagian baru:');
+      if (!rawTitle) return;
+      const title = cleanTitleNumbering(rawTitle);
+      saveSubSectionsFromForm();
+      currentEditingSubSections.push({ key: 'custom_' + Date.now(), title, content: '' });
+      buildAdminSubSectionsInputs(currentEditingSubSections);
+    }
+
+    function removeCustomSection(idx) {
+      saveSubSectionsFromForm();
+      currentEditingSubSections.splice(idx, 1);
+      buildAdminSubSectionsInputs(currentEditingSubSections);
+    }
+
+    function saveSubSectionsFromForm() {
+      currentEditingSubSections.forEach(s => {
+        const el = document.getElementById(`admSub_${s.key}`);
+        if (el) s.content = el.value;
+      });
+    }
+
+    function renderAdminProgramList() {
+      const list = document.getElementById('admProgListContainer');
+      const countPill = document.getElementById('admProgCountPill');
+      if (countPill) countPill.innerText = programs.length;
+
+      list.innerHTML = '';
+      if (programs.length === 0) {
+        list.innerHTML = `
+          <div style="text-align:center; padding:26px; background:var(--c-oat); border-radius:20px; border:2.5px dashed var(--c-jet);">
+            <p style="font-size:13px; color:rgba(17,17,17,0.7); margin-bottom:10px;">Belum ada sebarang program dicipta.</p>
+            <button onclick="toggleProgramView('form'); resetProgramForm();" class="btn btn-bubblegum" style="padding:8px 16px; font-size:12px;">
+              + Cipta Program Sekarang
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      programs.forEach((p, idx) => {
+        const filled = (p.subSections || []).filter(s => (s.content || '').trim() !== '').length;
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '14px 16px';
+        row.style.background = '#fff';
+        row.style.borderRadius = '18px';
+        row.style.border = '2.5px solid var(--c-jet)';
+        row.style.boxShadow = '0 4px 0 var(--c-jet)';
+        row.innerHTML = `
+          <div style="flex:1; padding-right:10px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+              <span style="font-size:11px; background:var(--c-bubblegum); padding:3px 10px; border-radius:8px; border:1.5px solid var(--c-jet);">Program #${idx + 1}</span>
+              <strong style="font-size:16px;">${p.title}</strong>
+            </div>
+            <span style="font-size:12px; color:rgba(17,17,17,0.7); display:block;">
+              Passcode Rahsia: <strong style="color:var(--c-orange);">${p.passcode}</strong> • <span style="color:#0E6245; font-weight:900;">${filled} Modul Berisi</span>
+            </span>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+            <button onclick="editProgram('${p.id}')" class="btn btn-jet" style="padding:7px 14px; font-size:12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Edit</span>
+            </button>
+            <button onclick="deleteProgram('${p.id}')" class="btn btn-outline" style="padding:7px 12px; font-size:12px; color:red;">
+              Padam
+            </button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function resetProgramForm() {
+      document.getElementById('admProgId').value = '';
+      document.getElementById('admProgTitle').value = '';
+      document.getElementById('admProgPasscode').value = '';
+      document.getElementById('admProgDesc').value = '';
+      document.getElementById('admFormTitle').innerText = 'Tambah Program Baru';
+      document.getElementById('admFormStatusBadge').style.display = 'none';
+      buildAdminSubSectionsInputs();
+    }
+
+    function handleSaveProgram(e) {
+      e.preventDefault();
+      const id = document.getElementById('admProgId').value || ('prog_' + Date.now());
+      const title = document.getElementById('admProgTitle').value.trim();
+      const passcode = document.getElementById('admProgPasscode').value.trim().toUpperCase();
+      const desc = document.getElementById('admProgDesc').value.trim();
+
+      saveSubSectionsFromForm();
+
+      const existingIdx = programs.findIndex(p => p.id === id);
+      const progObj = { id, title, passcode, desc, subSections: currentEditingSubSections };
+
+      if (existingIdx > -1) {
+        programs[existingIdx] = progObj;
+        showToast('Program dikemaskini!');
+      } else {
+        programs.push(progObj);
+        showToast('Program baru ditambah!');
+      }
+
+      localStorage.setItem(STORAGE_KEY_PROGRAMS, JSON.stringify(programs));
+
+      if (fbDb) {
+        try {
+          fbDb.collection('programs').doc(id).set(progObj, { merge: true });
+        } catch(e){}
+      }
+
+      resetProgramForm();
+      renderAdminProgramList();
+      renderPrograms();
+      populateProgramCheckboxes();
+      toggleProgramView('list');
+    }
+
+    function editProgram(id) {
+      const p = programs.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('admProgId').value = p.id;
+      document.getElementById('admProgTitle').value = p.title;
+      document.getElementById('admProgPasscode').value = p.passcode;
+      document.getElementById('admProgDesc').value = p.desc || '';
+      document.getElementById('admFormTitle').innerText = `Edit Program: ${p.title}`;
+      document.getElementById('admFormStatusBadge').style.display = 'inline-block';
+      buildAdminSubSectionsInputs(p.subSections);
+
+      toggleProgramView('form');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteProgram(id) {
+      if (!confirm('Adakah anda pasti mahu memadam program ini?')) return;
+      programs = programs.filter(p => p.id !== id);
+      localStorage.setItem(STORAGE_KEY_PROGRAMS, JSON.stringify(programs));
+      if (fbDb) {
+        try { fbDb.collection('programs').doc(id).delete(); } catch(e){}
+      }
+      renderAdminProgramList();
+      renderPrograms();
+      populateProgramCheckboxes();
+      showToast('Program dipadam.');
+    }
+
+    function populateProgramCheckboxes() {
+      const box = document.getElementById('admProgramCheckboxes');
+      box.innerHTML = '';
+      if (programs.length === 0) {
+        box.innerHTML = '<span style="font-size:11px; color:rgba(17,17,17,0.5);">Tiada program tersedia. Sila cipta program dahulu.</span>';
+        return;
+      }
+      programs.forEach(p => {
+        const lbl = document.createElement('label');
+        lbl.style.fontSize = '12px';
+        lbl.innerHTML = `<input type="checkbox" value="${p.id}" class="adm-p-chk" style="width:auto; margin-right:6px;"> ${p.title}`;
+        box.appendChild(lbl);
+      });
+    }
+
+    function generateRandomPasscode() {
+      const prefix = ['VIP', 'KK', 'PRO', 'MOD'];
+      const rand = prefix[Math.floor(Math.random() * prefix.length)] + '-' + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('admNewPasscodeCode').value = rand;
+    }
+
+    function handleCreatePasscode(e) {
+      e.preventDefault();
+      const name = document.getElementById('admNewPasscodeName').value.trim();
+      const code = document.getElementById('admNewPasscodeCode').value.trim().toUpperCase();
+      const selectedProgs = [];
+      document.querySelectorAll('.adm-p-chk:checked').forEach(c => selectedProgs.push(c.value));
+
+      if (selectedProgs.length === 0) {
+        showToast('Sila pilih sekurang-kurangnya satu program!');
+        return;
+      }
+
+      const newPasscode = { code, name, allowedPrograms: selectedProgs, status: 'active' };
+      passcodes.push(newPasscode);
+      localStorage.setItem(STORAGE_KEY_PASSCODES, JSON.stringify(passcodes));
+
+      if (fbDb) {
+        try {
+          fbDb.collection('passcodes').doc(code).set(newPasscode, { merge: true });
+        } catch(e){}
+      }
+
+      document.getElementById('admNewPasscodeName').value = '';
+      document.getElementById('admNewPasscodeCode').value = '';
+      document.querySelectorAll('.adm-p-chk').forEach(c => c.checked = false);
+
+      renderAdminPasscodeList();
+      showToast(`Kod ${code} dicipta!`);
+    }
+
+    function renderAdminPasscodeList() {
+      const list = document.getElementById('admPasscodesListContainer');
+      list.innerHTML = '';
+      passcodes.forEach((pc, idx) => {
+        const row = document.createElement('div');
+        const isActive = pc.status === 'active';
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '10px 14px';
+        row.style.background = '#fff';
+        row.style.borderRadius = '16px';
+        row.style.border = '2.5px solid var(--c-jet)';
+        row.innerHTML = `
+          <div>
+            <strong style="font-size:13px;">${pc.code}</strong>
+            <span style="font-size:11px; color:rgba(17,17,17,0.6); display:block;">${pc.name} • ${pc.allowedPrograms.length} Program</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button onclick="shareWhatsApp('${pc.code}', '${pc.name}')" class="btn btn-outline" style="padding:5px 10px; font-size:12px;">WA</button>
+            <button onclick="togglePasscodeStatus(${idx})" class="btn btn-outline" style="padding:5px 10px; font-size:11px; color:${isActive ? 'orange' : 'green'};">
+              ${isActive ? 'Sekat' : 'Aktif'}
+            </button>
+            <button onclick="deletePasscode(${idx})" class="btn btn-outline" style="padding:5px 8px; font-size:11px; color:red;">✕</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function togglePasscodeStatus(idx) {
+      passcodes[idx].status = passcodes[idx].status === 'active' ? 'blocked' : 'active';
+      localStorage.setItem(STORAGE_KEY_PASSCODES, JSON.stringify(passcodes));
+      renderAdminPasscodeList();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast('Status kod dikemaskini.');
+    }
+
+    function deletePasscode(idx) {
+      passcodes.splice(idx, 1);
+      localStorage.setItem(STORAGE_KEY_PASSCODES, JSON.stringify(passcodes));
+      renderAdminPasscodeList();
+      renderPrograms();
+      renderPasscodeUI();
+      showToast('Kod dipadam.');
+    }
+
+    function shareWhatsApp(code, name) {
+      const msg = `Hai ${name}, ini Kod Akses VIP anda ke Portal Kinder Klub:%0A*KOD AKSES:* ${code}%0ASila layari portal untuk membuka modul anda!`;
+      window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+    }
+
+    function handleSaveFirebaseConfig(e) {
+      e.preventDefault();
+      firebaseConfig = document.getElementById('admInputFirebaseConfig').value.trim();
+      localStorage.setItem(STORAGE_KEY_FIREBASE, firebaseConfig);
+      initFirebase();
+      testFirebaseConfigStatus();
+      showToast('Konfigurasi Firebase disimpan!');
+    }
+
+    function testFirebaseConfigStatus() {
+      const label = document.getElementById('firebaseStatusIndicator');
+      if (!firebaseConfig) {
+        label.innerText = 'Status: Belum Dikonfigurasi';
+        label.style.color = 'orange';
+        return;
+      }
+      try {
+        const parsed = JSON.parse(firebaseConfig);
+        if (parsed.apiKey) {
+          label.innerText = `Status: Sah & Aktif (Project: ${parsed.projectId || 'Tersambung'})`;
+          label.style.color = '#0E6245';
+        } else {
+          label.innerText = 'Status: JSON sah tetapi tiada apiKey';
+          label.style.color = 'orange';
+        }
+      } catch (e) {
+        label.innerText = 'Status: Format JSON tidak sah';
+        label.style.color = 'red';
+      }
+    }
+  </script>
+</body>
+</html>
